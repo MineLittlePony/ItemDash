@@ -1,0 +1,8 @@
+{
+	"name":			"ItemDash",
+	"version":		"$version",
+	"mcversion":	"$mcversion",
+	"revision":		"$revision",
+	"author":		"JoyJoy",
+	"description":	"Get items easilly"
+}
