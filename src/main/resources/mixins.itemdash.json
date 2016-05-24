@@ -1,0 +1,11 @@
+{
+	"required": true,
+	"minVersion": "0.5.5",
+	"package": "mnm.mods.itemdash.mixin",
+	"refmap": "mixins.itemdash.refmap.json",
+	"mixins": [
+		"MixinGuiContainerCreative",
+		"MixinGuiInventory",
+		"MixinInventoryEffectRenderer"
+	]
+}

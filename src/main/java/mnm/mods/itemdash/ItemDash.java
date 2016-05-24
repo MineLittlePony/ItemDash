@@ -6,18 +6,17 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.lwjgl.input.Keyboard;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
-import com.google.common.collect.Sets;
 
-import mnm.mods.itemdash.access.IGuiContainer;
-import mnm.mods.itemdash.access.IGuiCreativeContainer;
+import mnm.mods.itemdash.ducks.IGuiContainer;
+import mnm.mods.itemdash.ducks.IGuiCreativeContainer;
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.EasingsFactory;
 import net.minecraft.client.Minecraft;
@@ -64,8 +63,8 @@ public class ItemDash extends GuiDash implements Scrollable {
 
     public ItemDash(final List<String> ignored) {
         List<ItemStack> list = Lists.newArrayList();
-        Item.itemRegistry.forEach((Item it) -> it.getSubItems(it, null, list));
-        Function<Item, String> namer = it -> Item.itemRegistry.getNameForObject(it).toString();
+        Item.REGISTRY.forEach((Item it) -> it.getSubItems(it, null, list));
+        Function<Item, String> namer = it -> Item.REGISTRY.getNameForObject(it).toString();
         this.items = list.stream()
                 .filter(it -> !ignored.contains(namer.apply(it.getItem())))
                 .collect(Collectors.toSet());
@@ -134,7 +133,7 @@ public class ItemDash extends GuiDash implements Scrollable {
     public void arrangeItems(GuiContainer cont) {
         List<ItemStack> stacks;
         if (filter != null)
-            stacks = Lists.newArrayList(Sets.filter(items, filter));
+            stacks = items.stream().filter(filter).collect(Collectors.toList());
         else
             stacks = Lists.newArrayList(items);
         Collections.sort(stacks, sorter);
@@ -279,7 +278,7 @@ public class ItemDash extends GuiDash implements Scrollable {
                 int xPos = j * DASH_ICON_W + this.xPos;
                 int yPos = i * DASH_ICON_W + this.yPos;
                 icon.renderAt(xPos + 1, yPos + 2);
-                if (mousex > xPos && mousey > yPos && mousex < xPos + DASH_ICON_W && mousey < yPos + DASH_ICON_W)
+                if (mousex >= xPos && mousey >= yPos && mousex < xPos + DASH_ICON_W && mousey < yPos + DASH_ICON_W)
                     Gui.drawRect(xPos, yPos + 1, xPos + DASH_ICON_W, yPos + DASH_ICON_W + 1, 0x66ffffff);
             }
         }
@@ -304,7 +303,7 @@ public class ItemDash extends GuiDash implements Scrollable {
             scrollbar.mouseRelease(mouseX, mouseY, mouseButton);
     }
 
-    public void mouseClickMove(int x, int y, long lastButton, long buttonTime) {
+    public void mouseClickMove(int x, int y, int lastButton, long buttonTime) {
         if (!settings.isVisible())
             scrollbar.mouseDrag(x, y);
 
@@ -423,9 +422,6 @@ public class ItemDash extends GuiDash implements Scrollable {
         int count = this.width / DASH_ICON_W;
         int col = mouseX / DASH_ICON_W;
         int row = mouseY / DASH_ICON_W;
-        // between the lines
-        if ((float) mouseX / DASH_ICON_W == col || (float) mouseY / DASH_ICON_W == row)
-            return null;
         // outside
         ItemIcon[][] visible = getVisibleItems();
         if (row < 0 || col < 0 || row >= visible.length || col >= count)

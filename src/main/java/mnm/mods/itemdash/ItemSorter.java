@@ -8,8 +8,8 @@ import net.minecraft.item.ItemStack;
 public enum ItemSorter {
 
     BY_ID((a, b) -> {
-        String aId = Item.itemRegistry.getNameForObject(a.getItem()).toString();
-        String bId = Item.itemRegistry.getNameForObject(b.getItem()).toString();
+        String aId = Item.REGISTRY.getNameForObject(a.getItem()).toString();
+        String bId = Item.REGISTRY.getNameForObject(b.getItem()).toString();
         return aId.compareToIgnoreCase(bId);
     }),
     DEFAULT((a, b) -> Item.getIdFromItem(a.getItem()) - Item.getIdFromItem(b.getItem())),
@@ -22,6 +22,13 @@ public enum ItemSorter {
     }
 
     public Comparator<ItemStack> getSort() {
-        return sort;
+        return (a, b) -> {
+            // wrap the sorter and include metadata
+            int i = sort.compare(a, b);
+            if (i == 0) {
+                i = a.getMetadata() - b.getMetadata();
+            }
+            return i;
+        };
     }
 }

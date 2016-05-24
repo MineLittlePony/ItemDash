@@ -5,46 +5,64 @@ buildscript {
 			name 'forge'
 			url 'http://files.minecraftforge.net/maven/'
 		}
+		maven {
+			name 'sponge'
+			url 'https://repo.spongepowered.org/maven/'
+		}
+		maven {
+			name 'm2'
+			url 'https://plugins.gradle.org/m2'
+		}
 	}
 	dependencies {
-		classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
+		classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+		classpath 'org.spongepowered:mixingradle:0.4-SNAPSHOT'
+		classpath 'gradle.plugin.mnm.mods.kappa:ap-ide:1.0.5'
 	}
 }
-apply plugin: 'net.minecraftforge.gradle.liteloader'
 
-version = "1.0"
-group = "com.modid"
-archivesBaseName = 'modid'
-ext.revision = "2"
+apply plugin: 'net.minecraftforge.gradle.liteloader'
+apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'mnm.gradle.ap-ide'
+group = "mnm.mods"
+version = "1.1"
 
 targetCompatibility = 1.8
 sourceCompatibility = 1.8
 
 minecraft {
-	version = "1.8.9"
-	mappings = "stable_22"
+	version = "1.9.4"
+	mappings = "snapshot_20160517"
 	replace "@VERSION@", project.version
 	runDir = 'run'
+	clientJvmArgs += '-Dmixin.env.compatLevel=JAVA_8'
 }
-processResources{
-	// this will ensure that this task is redone when the versions change.
-	def props = [
-		version:	version,
-		mcversion:  minecraft.version,
-		revision:   revision
-	]
-	inputs.properties props
-	exclude "**/*.xcf"
-	// replace stuff in mcmod.info, nothing else
-	from(sourceSets.main.resources.srcDirs) {
-		include 'litemod.json'
-
-		// replace version and mcversion
-		expand props
+sourceSets.main {
+	refMap = 'mixins.itemdash.refmap.json'
+}
+mixin {
+	defaultObfuscationEnv notch
+}
+afterEvaluate {
+	dependencies {
+		def liteloader = project.plugins['net.minecraftforge.gradle.liteloader']
+		def artifact = liteloader.artifact.libraries.collect{it.name}.find{it.contains 'mixin'}
+		factory artifact
 	}
-
-	// copy everything else, thats not the mcmod.info
-	from(sourceSets.main.resources.srcDirs) {
-		exclude 'litemod.json'
+	processor {
+		def liteloader = project.plugins['net.minecraftforge.gradle.liteloader']
+		options.reobfSrgFile = mixin.reobfSrgFile
+	}
+}
+litemod.json {
+	author = 'JoyJoy'
+	//description = 'Get items easily'
+	mixinConfigs += ['mixins.itemdash.json']
+}
+jar {
+	from litemod
+	exclude '*.xcf'
+	manifest {
+		attributes 'MixinCompatibilityLevel': 'JAVA_8'
 	}
 }

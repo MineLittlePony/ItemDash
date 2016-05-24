@@ -1,12 +1,12 @@
 package mnm.mods.itemdash;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.BlockPos;
-import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.RayTraceResult;
 
 public class PickBlockHandler {
 
@@ -29,36 +29,32 @@ public class PickBlockHandler {
     private void middleClickMouse() {
         if (mc.objectMouseOver != null) {
 
-            if (mc.objectMouseOver.typeOfHit == MovingObjectPosition.MovingObjectType.BLOCK) {
-                int meta = 0;
-                Item item;
+            if (mc.objectMouseOver.typeOfHit == RayTraceResult.Type.BLOCK) {
+                ItemStack itemstack;
                 BlockPos blockpos = mc.objectMouseOver.getBlockPos();
-                Block block = mc.theWorld.getBlockState(blockpos).getBlock();
-                meta = block.getDamageValue(mc.theWorld, blockpos);
-                if (block.getMaterial() == Material.air) {
+                IBlockState state = mc.theWorld.getBlockState(blockpos);
+                if (state.getMaterial() == Material.AIR) {
                     return;
                 }
 
-                item = block.getItem(mc.theWorld, blockpos);
+                itemstack = state.getBlock().getItem(mc.theWorld, blockpos, state);
 
-                if (item == null) {
+                if (itemstack == null) {
                     return;
                 }
-                if (mc.thePlayer.isSneaking() || !inventoryHas(item, meta)) {
-                    LiteModItemDash.getInstance().giveItem(new ItemStack(item, item.getItemStackLimit(), meta));
+                if (mc.thePlayer.isSneaking() || !inventoryHas(itemstack)) {
+                    Item item = itemstack.getItem();
+                    LiteModItemDash.getInstance().giveItem(new ItemStack(item, item.getItemStackLimit(), itemstack.getMetadata()));
                 }
             }
         }
     }
 
-    private boolean inventoryHas(Item item, int meta) {
+    private boolean inventoryHas(ItemStack item) {
         for (ItemStack s : mc.thePlayer.inventory.mainInventory) {
-            if (s == null)
-                continue;
-            Item item1 = s.getItem();
-            int meta1 = s.getMetadata();
-            if (item1 == item && meta1 == meta)
+            if (item.isItemEqual(s))
                 return true;
+
         }
         return false;
     }

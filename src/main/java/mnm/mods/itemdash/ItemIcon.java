@@ -6,10 +6,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.entity.RenderItem;
+import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.text.TextFormatting;
 
 public class ItemIcon extends Gui {
 
@@ -37,15 +37,16 @@ public class ItemIcon extends Gui {
 
     protected void drawHoveringText(List<String> textLines, int x, int y) {
         if (!textLines.isEmpty()) {
-            String id = Item.itemRegistry.getNameForObject(item.getItem()).toString();
+            String id = Item.REGISTRY.getNameForObject(item.getItem()).toString();
             id = id.replace("minecraft:", "");
-            int legId = Item.itemRegistry.getIDForObject(item.getItem());
-            String meta = EnumChatFormatting.WHITE + " ("+legId+ ( item.getMetadata() != 0 ? ":" + item.getMetadata() : "")+")";
+            int legId = Item.REGISTRY.getIDForObject(item.getItem());
+            String meta = TextFormatting.WHITE + " ("+legId+ ( item.getMetadata() != 0 ? ":" + item.getMetadata() : "")+")";
             id += meta;
-            String str = textLines.get(0) + " " + EnumChatFormatting.LIGHT_PURPLE + id;
+            String str = textLines.get(0) + " " + TextFormatting.LIGHT_PURPLE + id;
             textLines.set(0, str);
             
-            while(y < 16) y++;
+            while (y < 16)
+                y++;
             GlStateManager.disableRescaleNormal();
             RenderHelper.disableStandardItemLighting();
             GlStateManager.disableLighting();
