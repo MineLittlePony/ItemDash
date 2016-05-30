@@ -21,17 +21,22 @@ public abstract class MixinGuiInventory extends InventoryEffectRenderer {
         super(inventorySlotsIn);
     }
 
-    @Inject(method = "drawGuiContainerBackgroundLayer(FII)V", at = @At("RETURN"))
-    protected void onDrawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY, CallbackInfo ci) {
+    @Inject(method = "drawGuiContainerBackgroundLayer(FII)V", at = @At("HEAD"))
+    private void onDrawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY, CallbackInfo ci) {
         LiteModItemDash.onPreRenderScreen(this, mouseX, mouseY, partialTicks);
     }
 
-    @Inject(method = "drawGuiContainerForegroundLayer(II)V", at = @At("HEAD"))
-    protected void onDrawGuiContainerForegroundLayer(int mouseX, int mouseY, CallbackInfo ci) {
+    @Inject(method = "drawGuiContainerForegroundLayer(II)V", at = @At("RETURN"))
+    private void onDrawGuiContainerForegroundLayer(int mouseX, int mouseY, CallbackInfo ci) {
         GlStateManager.pushMatrix();
         GlStateManager.translate(-guiLeft, -this.guiTop, 0);
         LiteModItemDash.onPostRenderScreen(this, mouseX, mouseY);
         GlStateManager.popMatrix();
+    }
+
+    @Inject(method = "updateScreen()V", at = @At("HEAD"))
+    private void onUpdateScreen(CallbackInfo ci) {
+        LiteModItemDash.onUpdateScreen(this);
     }
 
     @Override

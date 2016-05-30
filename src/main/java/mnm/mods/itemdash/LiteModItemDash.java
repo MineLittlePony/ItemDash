@@ -47,8 +47,10 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     public ItemSorter sort = ItemSorter.DEFAULT;
     @Expose
     public String[] ignored = {
-            "minecraft:farmland", "minecraft:lit_furnace", "minecraft:map", "minecraft:enchanted_book"
+            "minecraft:farmland", "minecraft:lit_furnace", "minecraft:map", "minecraft:enchanted_book", "minecraft:end_crystal"
     };
+    @Expose
+    public String[] favorites = {};
 
     @Override
     public String getName() {
@@ -121,7 +123,9 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
         if (mc.isSingleplayer()) {
             UUID uuid = mc.thePlayer.getGameProfile().getId();
             EntityPlayer player = mc.getIntegratedServer().getPlayerList().getPlayerByUUID(uuid);
-            player.inventory.addItemStackToInventory(stack);
+            boolean added = player.inventory.addItemStackToInventory(stack);
+            if (added)
+                player.inventoryContainer.detectAndSendChanges();
         } else {
             String message = formatGiveCommand(stack);
             mc.thePlayer.sendChatMessage(message);
@@ -200,6 +204,11 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
 
     public static LiteModItemDash getInstance() {
         return instance;
+    }
+
+    public static void onUpdateScreen(InventoryEffectRenderer screen) {
+        instance.itemdash.updateDash(screen);
+
     }
 
 }

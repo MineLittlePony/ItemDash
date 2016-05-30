@@ -24,6 +24,7 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.liteloader'
 apply plugin: 'org.spongepowered.mixin'
 apply plugin: 'mnm.gradle.ap-ide'
+
 group = "mnm.mods"
 version = "1.1"
 
@@ -35,7 +36,6 @@ minecraft {
 	mappings = "snapshot_20160517"
 	replace "@VERSION@", project.version
 	runDir = 'run'
-	clientJvmArgs += '-Dmixin.env.compatLevel=JAVA_8'
 }
 sourceSets.main {
 	refMap = 'mixins.itemdash.refmap.json'
@@ -62,7 +62,4 @@ litemod.json {
 jar {
 	from litemod
 	exclude '*.xcf'
-	manifest {
-		attributes 'MixinCompatibilityLevel': 'JAVA_8'
-	}
 }

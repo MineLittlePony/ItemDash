@@ -16,15 +16,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 
 import mnm.mods.itemdash.ducks.IGuiContainer;
-import mnm.mods.itemdash.ducks.IGuiCreativeContainer;
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.EasingsFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.client.gui.inventory.GuiContainerCreative;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -150,7 +149,7 @@ public class ItemDash extends GuiDash implements Scrollable {
         scroll(0);
     }
 
-    private void checkForGuiChanges(GuiContainer cont, int mousex, int mousey) {
+    private void checkForGuiChanges(InventoryEffectRenderer cont) {
         int yPos = 0;
         int width = (int) ((cont.width - ((IGuiContainer) cont).getXSize()) / (3f / 2f));
         width = (width / DASH_ICON_W) * DASH_ICON_W;
@@ -210,30 +209,26 @@ public class ItemDash extends GuiDash implements Scrollable {
         }
     }
 
-    public void preRender(GuiContainer cont, int mousex, int mousey) {
+    public void updateDash(InventoryEffectRenderer screen) {
 
-        checkForGuiChanges(cont, mousex, mousey);
-        int guiWidth = ((IGuiContainer) cont).getXSize();
+        checkForGuiChanges(screen);
+        int guiWidth = ((IGuiContainer) screen).getXSize();
         int newLeft = xPos / 2 - guiWidth / 2;
         if (!mc.thePlayer.getActivePotionEffects().isEmpty()) {
             newLeft += 50;
         }
-        ((IGuiContainer) cont).setGuiLeft(newLeft);
-        if (cont instanceof GuiContainerCreative) {
-            // changing guiLeft breaks the creative search box
-            fixCreativeInv((GuiContainerCreative) cont);
-        }
+        ((IGuiContainer) screen).setGuiLeft(newLeft);
+
+    }
+
+    public void preRender(GuiContainer cont, int mousex, int mousey) {
+
         GlStateManager.enableAlpha();
         drawBackground();
         if (!this.settings.isVisible()) {
             this.scrollbar.drawScrollbar();
             renderItems(mousex, mousey);
         }
-    }
-
-    private void fixCreativeInv(GuiContainerCreative inv) {
-        GuiTextField search = ((IGuiCreativeContainer) inv).getSearchField();
-        search.xPosition = ((IGuiContainer) inv).getGuiLeft() + 82;
     }
 
     public void postRender(GuiContainer cont, int mousex, int mousey) {

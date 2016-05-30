@@ -18,6 +18,12 @@ public abstract class MixinInventoryEffectRenderer extends GuiContainer implemen
     }
 
     @Override
+    public void initGui() {
+        super.initGui();
+        LiteModItemDash.onUpdateScreen((InventoryEffectRenderer) (Object) this);
+    }
+
+    @Override
     protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         LiteModItemDash.onMouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
         super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
@@ -38,11 +44,6 @@ public abstract class MixinInventoryEffectRenderer extends GuiContainer implemen
     @Override
     public int getXSize() {
         return this.xSize;
-    }
-
-    @Override
-    public int getGuiLeft() {
-        return guiLeft;
     }
 
     @Override
