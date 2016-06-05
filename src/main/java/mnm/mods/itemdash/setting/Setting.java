@@ -1,7 +1,6 @@
 package mnm.mods.itemdash.setting;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import mnm.mods.itemdash.LiteModItemDash;
 import net.minecraft.client.Minecraft;
@@ -16,26 +15,26 @@ public abstract class Setting<T> extends Gui {
     protected int yPos;
     public int width;
     public int height;
-    
+
     private T value;
 
     private Consumer<T> saver;
-    private Supplier<T> loader;
 
-    public Setting(String text, Consumer<T> save, Supplier<T> load, int w, int h) {
+    public Setting(String text, Consumer<T> save, T load, int w, int h) {
         this.text = text;
         this.width = w;
         this.height = h;
 
         this.saver = save;
-        this.loader = load;
+        this.value = load;
     }
 
-    protected void set(T value){
+    protected void set(T value) {
         this.value = value;
+        action();
     }
 
-    protected T get(){
+    protected T get() {
         return value;
     }
 
@@ -48,13 +47,9 @@ public abstract class Setting<T> extends Gui {
             action();
     }
 
-    protected void action() {
+    private void action() {
         saver.accept(get());
         LiteModItemDash.getInstance().saveConfig();
-    }
-
-    public final void applyCurrent() {
-        set(loader.get());
     }
 
     public void setPos(int x, int y) {

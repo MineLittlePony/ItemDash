@@ -1,6 +1,8 @@
 package mnm.mods.itemdash;
 
-public class DashScroller extends GuiDash {
+import net.minecraft.client.Minecraft;
+
+public class DashScroller extends DashElement {
 
     private static final int MIN_GRIP = 10;
     private static final int MAX_GRIP = 50;
@@ -26,7 +28,7 @@ public class DashScroller extends GuiDash {
 
     public void drawScrollbar() {
         this.zLevel = 300;
-        mc.getTextureManager().bindTexture(BG);
+        Minecraft.getMinecraft().getTextureManager().bindTexture(BG);
         this.xPos = scrollable.getX() + scrollable.getWidth();
 
         float contentSize = scrollable.getContentHeight();

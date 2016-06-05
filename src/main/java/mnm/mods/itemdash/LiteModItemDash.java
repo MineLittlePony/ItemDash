@@ -1,13 +1,15 @@
 package mnm.mods.itemdash;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.lwjgl.input.Mouse;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.gson.annotations.Expose;
 import com.mumfrey.liteloader.InitCompleteListener;
 import com.mumfrey.liteloader.PacketHandler;
@@ -20,6 +22,8 @@ import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketSetSlot;
@@ -28,6 +32,8 @@ import net.minecraft.util.math.MathHelper;
 public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHandler {
 
     private static LiteModItemDash instance;
+
+    private File dataFile;
 
     private Minecraft mc;
     private ItemDash itemdash;
@@ -46,11 +52,14 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     @Expose
     public ItemSorter sort = ItemSorter.DEFAULT;
     @Expose
-    public String[] ignored = {
-            "minecraft:farmland", "minecraft:lit_furnace", "minecraft:map", "minecraft:enchanted_book", "minecraft:end_crystal"
-    };
-    @Expose
-    public String[] favorites = {};
+    public Set<String> ignored = Sets.newHashSet(
+            "minecraft:farmland",
+            "minecraft:lit_furnace",
+            "minecraft:map",
+            "minecraft:enchanted_book",
+            "minecraft:end_crystal");
+
+    public Favorites favorites;
 
     @Override
     public String getName() {
@@ -69,14 +78,44 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
         this.rd = new Rainblower();
         this.pbh = new PickBlockHandler();
         this.konamiCode = new Konami(rd);
+        this.favorites = new Favorites();
         LiteLoader.getInstance().registerExposable(this, "itemdash.json");
+        this.dataFile = new File(configPath, "itemdash.dat");
     }
 
     @Override
     public void onInitCompleted(Minecraft minecraft, LiteLoader loader) {
         // init later so I catch other mods and their items/blocks
-        this.itemdash = new ItemDash(Lists.newArrayList(ignored));
-        this.itemdash.sort(sort);
+        this.readDataFile();
+        this.itemdash = new ItemDash(Sets.newHashSet(ignored), favorites);
+    }
+
+    public void readDataFile() {
+        try {
+            File data = this.dataFile;
+            if (data.exists()) {
+                NBTTagCompound tag = CompressedStreamTools.read(data);
+
+                this.favorites.readFromNbt(tag);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void writeDataFile() {
+        try {
+            File data = this.dataFile;
+            NBTTagCompound tag = new NBTTagCompound();
+
+            this.favorites.writeToNbt(tag);
+
+            data.getParentFile().mkdirs();
+            CompressedStreamTools.write(tag, data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -187,7 +226,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     }
 
     private boolean handleKeyboardInput(char typedChar, int keycode) {
-        boolean cancel = itemdash.isSearching();
+        boolean cancel = itemdash.isFocused();
         this.itemdash.keyTyped(typedChar, keycode);
         this.konamiCode.onKey(keycode);
         return cancel;

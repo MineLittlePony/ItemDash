@@ -1,7 +1,6 @@
 package mnm.mods.itemdash.setting;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import com.mumfrey.liteloader.client.gui.GuiCheckbox;
 
@@ -9,21 +8,17 @@ public class BoolSetting extends Setting<Boolean> {
 
     private GuiCheckbox chkbox;
 
-    public BoolSetting(String name, Consumer<Boolean> consumer, Supplier<Boolean> supplier) {
-        super(name, consumer, supplier, 30, 14);
+    public BoolSetting(String name, Consumer<Boolean> consumer, boolean value) {
+        super(name, consumer, value, 30, 14);
         this.chkbox = new GuiCheckbox(0, 0, 0, name);
+        this.chkbox.checked = value;
     }
 
     @Override
     public void mouseClick(int x, int y, int b) {
-        if (chkbox.mousePressed(mc, x, y))
-            action();
-    }
-
-    @Override
-    protected void action() {
-        set(!get());
-        super.action();
+        if (chkbox.mousePressed(mc, x, y)) {
+            set(!get());
+        }
     }
 
     @Override

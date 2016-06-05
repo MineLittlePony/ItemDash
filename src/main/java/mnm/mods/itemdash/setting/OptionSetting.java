@@ -2,7 +2,6 @@ package mnm.mods.itemdash.setting;
 
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -15,7 +14,7 @@ public class OptionSetting extends Setting<ItemSorter> {
 
     private BiMap<ItemSorter, GuiCheckbox> options = HashBiMap.create(Maps.newEnumMap(ItemSorter.class));
 
-    public OptionSetting(String text, Consumer<ItemSorter> loader, Supplier<ItemSorter> saver) {
+    public OptionSetting(String text, Consumer<ItemSorter> loader, ItemSorter saver) {
         super(text, loader, saver, 120, mc.fontRendererObj.FONT_HEIGHT + 2);
     }
 
@@ -24,10 +23,7 @@ public class OptionSetting extends Setting<ItemSorter> {
         this.options.entrySet().stream()
                 .filter(it -> it.getValue().mousePressed(mc, x, y))
                 .findAny()
-                .ifPresent(it -> {
-                    set(it.getKey());
-                    action();
-                });
+                .ifPresent(it -> set(it.getKey()));
     }
 
     @Override

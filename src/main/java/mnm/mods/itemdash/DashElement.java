@@ -1,10 +1,9 @@
 package mnm.mods.itemdash;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ResourceLocation;
 
-public class GuiDash extends Gui {
+public class DashElement extends Gui {
 
     protected static int TOP = 0x1,
             LEFT = 0x2,
@@ -18,7 +17,9 @@ public class GuiDash extends Gui {
 
     public static final ResourceLocation BG = new ResourceLocation("itemdash", "textures/gui/itemdash.png");
 
-    protected Minecraft mc = Minecraft.getMinecraft();
+    protected void drawBorders(int xPos, int yPos, int width, int height, int flags) {
+        this.drawBorders(xPos, yPos, width, height, 0, 0, 18, 18, flags);
+    }
 
     protected void drawBorders(int xPos, int yPos, int width, int height, int u, int v, int texW, int texH, int flags) {
         final boolean t = getFlag(flags, TOP);

@@ -1,58 +1,41 @@
 package mnm.mods.itemdash;
 
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 import com.google.common.collect.Lists;
+import com.mumfrey.liteloader.core.LiteLoader;
 
 import mnm.mods.itemdash.setting.BoolSetting;
 import mnm.mods.itemdash.setting.OptionSetting;
 import mnm.mods.itemdash.setting.Setting;
 import mnm.mods.itemdash.setting.StringSetting;
 
-public class GuiSettings extends GuiDash {
+public class DashSettings extends Dash {
 
     private final LiteModItemDash litemod = LiteModItemDash.getInstance();
-    private final ItemDash itemdash;
     private boolean visible;
-    private Predicate<Void> focused;
+    private List<Supplier<Boolean>> focused = Lists.newArrayList();
 
     private List<Setting<?>> settings = Lists.newArrayList();
 
-    public GuiSettings(ItemDash itemdash) {
-        this.itemdash = itemdash;
+    public DashSettings(ItemDash itemdash) {
+        super(itemdash);
         this.settings.add(new BoolSetting("Legacy IDs",
-                it -> litemod.numIds = it,
-                () -> litemod.numIds));
+                it -> litemod.numIds = it, litemod.numIds));
         this.settings.add(new StringSetting(this, "Give Command",
-                it -> litemod.giveCommand = it,
-                () -> litemod.giveCommand)
+                it -> litemod.giveCommand = it, litemod.giveCommand)
                         .preset("Vanilla", "/give {0} {1} {2} {3}")
                         .preset("Essentials", "/i {1}:{3} {2}"));
         this.settings.add(new OptionSetting("Sorting",
-                it -> {
-                    litemod.sort = it;
-                    itemdash.sort(it);
-                } , () -> litemod.sort)
+                it -> litemod.sort = it, litemod.sort)
                         .option(ItemSorter.BY_ID, "By ID")
                         .option(ItemSorter.DEFAULT, "By Legacy")
                         .option(ItemSorter.BY_NAME, "By Name"));
     }
 
-    public void open() {
-        if (!visible) {
-            this.visible = true;
-            settings.forEach(it -> it.applyCurrent());
-        }
-    }
-
-    public void close() {
-        if (visible) {
-            visible = false;
-        }
-    }
-
-    public void draw(int mousex, int mousey) {
+    @Override
+    public void preRender(int mousex, int mousey) {
 
         int xPos = itemdash.xPos;
         int yPos = itemdash.yPos;
@@ -67,27 +50,33 @@ public class GuiSettings extends GuiDash {
         this.settings.forEach(it -> it.draw(mousex, mousey));
     }
 
-    public void mouseClick(int x, int y) {
-        this.settings.forEach(it -> it.mouseClick(x, y, 0));
+    @Override
+    public void mouseClicked(int x, int y, int button) {
+        this.settings.forEach(it -> it.mouseClick(x, y, button));
     }
 
+    @Override
     public void keyTyped(char key, int code) {
         this.settings.forEach(it -> it.keyPush(key, code));
+    }
+
+    @Override
+    public void onClose() {
+        LiteLoader.getInstance().writeConfig(litemod);
+        this.itemdash.dirty = true;
     }
 
     public boolean isVisible() {
         return visible;
     }
 
+    @Override
     public boolean isFocused() {
-        return focused.test(null);
+        return this.focused.stream().anyMatch(Supplier::get);
     }
 
-    public void addFocus(Predicate<Void> pred) {
-        if (this.focused == null)
-            focused = pred;
-        else
-            focused = focused.or(pred);
+    public void addFocus(Supplier<Boolean> focus) {
+        this.focused.add(focus);
     }
 
 }

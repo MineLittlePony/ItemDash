@@ -23,10 +23,10 @@ public class ItemIcon extends Gui {
 
     public void renderAt(int x, int y) {
         RenderHelper.enableGUIStandardItemLighting();
-        render.zLevel=100;
+        render.zLevel = 100;
         render.renderItemAndEffectIntoGUI(item, x, y);
         RenderHelper.disableStandardItemLighting();
-        render.zLevel=0;
+        render.zLevel = 0;
     }
 
     public void renderTooltip(int x, int y) {
@@ -40,11 +40,11 @@ public class ItemIcon extends Gui {
             String id = Item.REGISTRY.getNameForObject(item.getItem()).toString();
             id = id.replace("minecraft:", "");
             int legId = Item.REGISTRY.getIDForObject(item.getItem());
-            String meta = TextFormatting.WHITE + " ("+legId+ ( item.getMetadata() != 0 ? ":" + item.getMetadata() : "")+")";
+            String meta = TextFormatting.WHITE + " (" + legId + (item.getMetadata() != 0 ? ":" + item.getMetadata() : "") + ")";
             id += meta;
             String str = textLines.get(0) + " " + TextFormatting.LIGHT_PURPLE + id;
             textLines.set(0, str);
-            
+
             while (y < 16)
                 y++;
             GlStateManager.disableRescaleNormal();
@@ -113,5 +113,9 @@ public class ItemIcon extends Gui {
         if (button == 0)
             size = item.getMaxStackSize();
         return new ItemStack(item.getItem(), size, item.getItemDamage());
+    }
+    
+    public ItemStack getStack() {
+        return this.item;
     }
 }
