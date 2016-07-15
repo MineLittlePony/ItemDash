@@ -6,7 +6,7 @@ public class DashScroller extends DashElement {
 
     private static final int MIN_GRIP = 10;
     private static final int MAX_GRIP = 50;
-    private static final int BUTTON_SIZE = 15;
+    private static final int BUTTON_SIZE = 20;
 
     private final Scrollable scrollable;
 
@@ -15,7 +15,7 @@ public class DashScroller extends DashElement {
     private int xPos;
     private int yPos;
     private int height;
-    private int width = 15;
+    private int width = BUTTON_SIZE;
 
     private boolean scrolling;
 
@@ -53,14 +53,14 @@ public class DashScroller extends DashElement {
         height = (int) gripSize;
 
         // top
-        this.drawBorders(xPos, scrollable.getY(), width, width, 0, 0, 18, 18, BOTTOM);
-        this.drawTexturedModalRect(xPos, scrollable.getY(), 40, 15, 15, 10);
+        this.drawBorders(xPos, scrollable.getY(), width, width, BOTTOM);
+        this.drawTexturedModalRect(xPos, scrollable.getY(), 41, 15, 20, 15);
         // bottom
-        this.drawBorders(xPos, scrollable.getY() + scrollable.getWindowHeight() - width, width, width, 0, 0, 18, 18, TOP);
-        this.drawTexturedModalRect(xPos, scrollable.getY() + scrollable.getWindowHeight() - width, 40, 25, 15, 10);
+        this.drawBorders(xPos, scrollable.getY() + scrollable.getWindowHeight() - width, width, width, TOP);
+        this.drawTexturedModalRect(xPos, scrollable.getY() + scrollable.getWindowHeight() - width, 41, 25, 20, 15);
 
-        this.drawBorders(xPos, scrollable.getY(), width, scrollable.getWindowHeight(), 0, 0, 18, 18, ALL);
-        this.drawBorders(xPos, this.yPos, width, height, 0, 0, 18, 18, ALL);
+        this.drawBorders(xPos, scrollable.getY(), width, scrollable.getWindowHeight(), ALL);
+        this.drawBorders(xPos, this.yPos, width, height, ALL);
         this.zLevel = 0;
     }
 

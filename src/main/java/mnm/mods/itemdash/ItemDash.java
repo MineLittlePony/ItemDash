@@ -34,7 +34,7 @@ public class ItemDash extends DashElement {
         SEARCH
     }
 
-    private final Set<ItemStack> items;
+    private final List<ItemStack> items;
 
     private Minecraft mc = Minecraft.getMinecraft();
 
@@ -49,10 +49,6 @@ public class ItemDash extends DashElement {
     public Dash currentDash;
     private Favorites favorites;
 
-    // tabs
-    private SideTab favoritesTab;
-    private SideTab searchTab;
-
     private int toggleTimer;
 
     public boolean dirty = true;
@@ -63,27 +59,29 @@ public class ItemDash extends DashElement {
         Function<Item, String> namer = it -> Item.REGISTRY.getNameForObject(it).toString();
         this.items = list.stream()
                 .filter(it -> !ignored.contains(namer.apply(it.getItem())))
-                .collect(Collectors.toSet());
-        this.setCurrentDash(new MainDash(this, this.items));
+                .collect(Collectors.toList());
         this.favorites = favorites;
         int i = 0;
         // enable
-        this.tabs.add(new SideTab(Tabs.TOGGLE.ordinal(), i++, 0, 18, this) {
+        this.tabs.add(new SideTab(Tabs.TOGGLE.ordinal(), i++, 0, 20, false, this) {
             @Override
             public void drawTab() {
-                this.texU = isEnabled() ? 0 : 18;
+                this.texU = isEnabled() ? 0 : 20;
                 super.drawTab();
             }
         });
         // main
-        this.tabs.add(new SideTab(Tabs.ITEMS.ordinal(), i++, 40, 38, this));
+        SideTab items = new SideTab(Tabs.ITEMS.ordinal(), i++, 80, 40, true, this);
+        this.tabs.add(items);
+        // search
+        this.tabs.add(new SideTab(Tabs.SEARCH.ordinal(), i++, 0, 40, true, this));
         // favorites
-        this.tabs.add(new SideTab(Tabs.FAVORITES.ordinal(), i++, 40, 38, this));
+        this.tabs.add(new SideTab(Tabs.FAVORITES.ordinal(), i++, 40, 40, true, this));
         // TODO potions nbt
         // settings
-        this.tabs.add(new SideTab(Tabs.SETTINGS.ordinal(), i++, 20, 38, this));
-        // search
-        this.tabs.add(searchTab = new SideTab(Tabs.SEARCH.ordinal(), i++, 0, 38, this));
+        this.tabs.add(new SideTab(Tabs.SETTINGS.ordinal(), i++, 20, 40, true, this));
+
+        this.onTabActivated(items);
     }
 
     public void setCurrentDash(@Nonnull Dash dash) {
@@ -91,9 +89,6 @@ public class ItemDash extends DashElement {
             dash = new MainDash(this, this.items);
         }
         if (this.currentDash != null) {
-            if (!(this.currentDash instanceof MainDash) || ((MainDash) this.currentDash).isSearching()) {
-                this.searchTab.visible = true;
-            }
             this.currentDash.onClose();
         }
         this.currentDash = dash;
@@ -103,9 +98,10 @@ public class ItemDash extends DashElement {
 
         Preconditions.checkPositionIndex(tab.id, Tabs.values().length, "Tab is out of bounds. Expected 0-" + Tabs.values().length + " but found " + tab.id);
         Tabs tabs = Tabs.values()[tab.id];
+        boolean open = true;
         switch (tabs) {
         case TOGGLE:
-            this.setEnabled(!this.isEnabled());
+            open = !this.isEnabled();
             break;
         case ITEMS:
             setCurrentDash(new MainDash(this, this.items));
@@ -114,11 +110,22 @@ public class ItemDash extends DashElement {
             setCurrentDash(new DashSettings(this));
             break;
         case FAVORITES:
-            setCurrentDash(new MainDash(this, this.favorites.getItems()));
+            setCurrentDash(new FavoritesDash(this, this.favorites));
             break;
         case SEARCH:
             this.doSearch();
 
+        }
+        if (open == !this.isEnabled()) {
+            this.setEnabled(open);
+        }
+
+        if (tab.activatable) {
+
+            for (SideTab sideTab : this.tabs) {
+                sideTab.active = false;
+            }
+            tab.active = true;
         }
     }
 
@@ -136,6 +143,10 @@ public class ItemDash extends DashElement {
 
     public boolean isFocused() {
         return this.currentDash.isFocused();
+    }
+
+    public Favorites getFavorites() {
+        return favorites;
     }
 
     public void onTick() {
@@ -237,9 +248,6 @@ public class ItemDash extends DashElement {
         MainDash dash = new MainDash(this, this.items);
         this.setCurrentDash(dash);
         dash.doSearch();
-        if (!isEnabled())
-            setEnabled(true);
-        this.searchTab.visible = false;
     }
 
     public void keyTyped(char key, int code) {

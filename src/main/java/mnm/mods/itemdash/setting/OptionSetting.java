@@ -5,25 +5,23 @@ import java.util.function.Consumer;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Maps;
 import com.mumfrey.liteloader.client.gui.GuiCheckbox;
 
-import mnm.mods.itemdash.ItemSorter;
+public class OptionSetting<E extends Enum<E>> extends Setting<E> {
 
-public class OptionSetting extends Setting<ItemSorter> {
+    private BiMap<E, GuiCheckbox> options = HashBiMap.create();
 
-    private BiMap<ItemSorter, GuiCheckbox> options = HashBiMap.create(Maps.newEnumMap(ItemSorter.class));
-
-    public OptionSetting(String text, Consumer<ItemSorter> loader, ItemSorter saver) {
+    public OptionSetting(String text, Consumer<E> loader, E saver) {
         super(text, loader, saver, 120, mc.fontRendererObj.FONT_HEIGHT + 2);
     }
 
     @Override
     public void mouseClick(int x, int y, int b) {
         this.options.entrySet().stream()
-                .filter(it -> it.getValue().mousePressed(mc, x, y))
+                .filter(e -> e.getValue().mousePressed(mc, x, y))
                 .findAny()
-                .ifPresent(it -> set(it.getKey()));
+                .map(Entry::getKey)
+                .ifPresent(this::set);
     }
 
     @Override
@@ -31,14 +29,14 @@ public class OptionSetting extends Setting<ItemSorter> {
         int yPos = this.yPos;
         yPos += mc.fontRendererObj.FONT_HEIGHT + 4;
         mc.fontRendererObj.drawString(this.text, xPos, yPos, -1);
-        for (Entry<ItemSorter, GuiCheckbox> e : options.entrySet()) {
+        for (Entry<E, GuiCheckbox> e : options.entrySet()) {
             GuiCheckbox s = e.getValue();
             s.checked = e.getKey() == this.get();
             s.drawButton(mc, x, y);
         }
     }
 
-    public OptionSetting option(ItemSorter sorter, String name) {
+    public OptionSetting<E> option(E sorter, String name) {
         height += 16;
         this.options.put(sorter, new GuiCheckbox(height, xPos, yPos, name));
         return this;

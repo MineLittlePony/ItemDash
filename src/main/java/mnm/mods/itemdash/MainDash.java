@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.lwjgl.input.Keyboard;
 
@@ -25,10 +27,11 @@ import net.minecraft.item.ItemStack;
 
 public class MainDash extends Dash implements Scrollable {
 
-    private final Collection<ItemStack> items;
-
+    private Collection<ItemStack> items;
+    @Nullable
     private Predicate<ItemStack> filter;
 
+    private int yPos;
     private int scroll;
 
     private GuiTextField search;
@@ -36,7 +39,7 @@ public class MainDash extends Dash implements Scrollable {
 
     private ItemIcon[][] arrangedIcons = {};
 
-    private boolean hasSearched;
+    private boolean searching;
     private int searchTimer;
 
     private int lastMouseX;
@@ -53,7 +56,7 @@ public class MainDash extends Dash implements Scrollable {
         return LiteModItemDash.getInstance().sort.getSort();
     }
 
-    public ItemIcon[][] arrangeItems(Collection<ItemStack> items) {
+    private ItemIcon[][] arrangeItems(Collection<ItemStack> items) {
         List<ItemStack> stacks;
         if (filter != null)
             stacks = items.stream().filter(filter).collect(Collectors.toList());
@@ -81,7 +84,7 @@ public class MainDash extends Dash implements Scrollable {
                 if (icon == null)
                     continue;
                 int xPos = j * DASH_ICON_W + this.itemdash.xPos;
-                int yPos = i * DASH_ICON_W + this.itemdash.yPos;
+                int yPos = i * DASH_ICON_W + getY();
                 icon.renderAt(xPos + 1, yPos + 2);
                 if (mousex >= xPos && mousey >= yPos && mousex < xPos + DASH_ICON_W && mousey < yPos + DASH_ICON_W)
                     Gui.drawRect(xPos, yPos + 1, xPos + DASH_ICON_W, yPos + DASH_ICON_W + 1, 0x66ffffff);
@@ -107,7 +110,7 @@ public class MainDash extends Dash implements Scrollable {
 
         EasingType easing = EasingsFactory.getInstance().quadratic();
 
-        if (hasSearched) {
+        if (searching) {
             int tick = Minecraft.getMinecraft().ingameGUI.getUpdateCounter() - searchTimer;
             if (tick < 2)
                 yPos = (int) easing.in().ease(tick, yPos, 14, 2);
@@ -115,6 +118,8 @@ public class MainDash extends Dash implements Scrollable {
                 yPos += 14;
             height = itemdash.height - yPos;
         }
+
+        this.yPos = yPos;
 
         if (itemdash.dirty) {
             GuiTextField text = new GuiTextField(0, Minecraft.getMinecraft().fontRendererObj, xPos + 2, yPos - 14, width, 14);
@@ -130,15 +135,21 @@ public class MainDash extends Dash implements Scrollable {
         search.yPosition = yPos - 14;
 
         if (itemdash.dirty) {
+            updateItems(this.items);
             this.arrangedIcons = arrangeItems(this.items);
             scroll(0);
             itemdash.dirty = false;
         }
     }
 
-    private ItemIcon getItem(int mouseX, int mouseY) {
+    protected void updateItems(Collection<ItemStack> items) {
+        this.items = items;
+    }
+
+    @Nullable
+    protected ItemIcon getItem(int mouseX, int mouseY) {
         mouseX -= itemdash.xPos;
-        mouseY -= itemdash.yPos - 1;
+        mouseY -= getY() - 1;
         if (mouseX <= 0 || mouseY <= 0)
             return null;
         int count = this.itemdash.width / DASH_ICON_W;
@@ -168,7 +179,7 @@ public class MainDash extends Dash implements Scrollable {
         this.scrollbar.drawScrollbar();
         renderItems(mousex, mousey);
         // search box
-        if (hasSearched) {
+        if (searching) {
             this.drawBorders(itemdash.xPos - 2, this.search.yPosition, itemdash.width + 17, 16, 0, 0, 18, 18,
                     LEFT | TOP | TOP_LEFT | RIGHT);
         }
@@ -210,9 +221,6 @@ public class MainDash extends Dash implements Scrollable {
     @Override
     public void keyTyped(char key, int code) {
 
-        if (code == Keyboard.KEY_TAB) {
-            doSearch();
-        }
         if (code == Keyboard.KEY_F) {
             this.favoriteItem();
         }
@@ -239,7 +247,7 @@ public class MainDash extends Dash implements Scrollable {
     @Override
     public void onClose() {
         markDirty();
-        this.hasSearched = filter != null;
+        this.searching = filter != null;
     }
 
     @Override
@@ -248,9 +256,8 @@ public class MainDash extends Dash implements Scrollable {
     }
 
     public void markDirty() {
-        this.hasSearched = this.filter != null;
+        this.searching = this.filter != null;
         this.itemdash.dirty = true;
-
     }
 
     @Override
@@ -260,7 +267,7 @@ public class MainDash extends Dash implements Scrollable {
 
     @Override
     public int getY() {
-        return itemdash.yPos;
+        return this.yPos;
     }
 
     @Override
@@ -297,20 +304,36 @@ public class MainDash extends Dash implements Scrollable {
     }
 
     public void doSearch() {
-        this.search.setFocused(true);
         this.search.setText("");
         this.filter = null;
-        if (!hasSearched) {
-            this.hasSearched = true;
+        this.search.setFocused(true);
+        if (!searching) {
+            this.searching = true;
             this.searchTimer = Minecraft.getMinecraft().ingameGUI.getUpdateCounter();
         }
     }
 
-    private void favoriteItem() {
+    protected void favoriteItem() {
         ItemIcon icon = getItem(this.lastMouseX, this.lastMouseY);
+        if (icon == null)
+            return;
+
         ItemStack stack = icon.getStack();
-        System.out.println(stack + " is now favorited");
-        // TODO favorites
+        favoriteItem(stack);
+    }
+
+    protected void favoriteItem(ItemStack stack) {
+
+        Favorites favorites = itemdash.getFavorites();
+
+        if (favorites.has(stack)) {
+            favorites.remove(stack);
+        } else {
+            favorites.add(stack);
+
+        }
+        LiteModItemDash.getInstance().writeDataFile();
+
     }
 
     /** So the compiler doesn't complain about ambiguous references */

@@ -20,13 +20,18 @@ public class StringSetting extends Setting<String> {
     public StringSetting(DashSettings settings, String name, Consumer<String> apply, String current) {
         super(name, apply, current, W, H);
         this.textBox = new GuiTextField(0, mc.fontRendererObj, 0, 0, W, H);
+        this.textBox.setText(current);
 
         settings.addFocus(textBox::isFocused);
     }
 
     public StringSetting preset(String name, String cmd) {
         this.height += 16;
-        this.presets.put(cmd, new GuiCheckbox(height, xPos, yPos + height, name));
+        GuiCheckbox chk = new GuiCheckbox(height, xPos, yPos + height, name);
+        if (this.get().equals(cmd)) {
+            chk.checked = true;
+        }
+        this.presets.put(cmd, chk);
 
         return this;
     }

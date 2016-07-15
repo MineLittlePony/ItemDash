@@ -5,7 +5,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class DashElement extends Gui {
 
-    protected static int TOP = 0x1,
+    protected static final int TOP = 0x1,
             LEFT = 0x2,
             RIGHT = 0x4,
             BOTTOM = 0x8,
@@ -18,7 +18,7 @@ public class DashElement extends Gui {
     public static final ResourceLocation BG = new ResourceLocation("itemdash", "textures/gui/itemdash.png");
 
     protected void drawBorders(int xPos, int yPos, int width, int height, int flags) {
-        this.drawBorders(xPos, yPos, width, height, 0, 0, 18, 18, flags);
+        this.drawBorders(xPos, yPos, width, height + 1, 0, 0, 21, 21, flags);
     }
 
     protected void drawBorders(int xPos, int yPos, int width, int height, int u, int v, int texW, int texH, int flags) {
@@ -31,8 +31,8 @@ public class DashElement extends Gui {
         final boolean bl = getFlag(flags, BOTTOM_LEFT);
         final boolean br = getFlag(flags, BOTTOM_RIGHT);
 
-        final int wsize = texW / 3;
-        final int hsize = texH / 3;
+        final int wsize = (texW - u) / 3;
+        final int hsize = (texH - v) / 3;
         // top left
         if (tl)
             this.drawTexturedModalRect(xPos, yPos, u, v, wsize, hsize);

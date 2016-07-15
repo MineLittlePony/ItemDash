@@ -27,7 +27,7 @@ public class DashSettings extends Dash {
                 it -> litemod.giveCommand = it, litemod.giveCommand)
                         .preset("Vanilla", "/give {0} {1} {2} {3}")
                         .preset("Essentials", "/i {1}:{3} {2}"));
-        this.settings.add(new OptionSetting("Sorting",
+        this.settings.add(new OptionSetting<ItemSorter>("Sorting",
                 it -> litemod.sort = it, litemod.sort)
                         .option(ItemSorter.BY_ID, "By ID")
                         .option(ItemSorter.DEFAULT, "By Legacy")

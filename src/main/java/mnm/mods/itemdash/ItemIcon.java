@@ -32,6 +32,12 @@ public class ItemIcon extends Gui {
     public void renderTooltip(int x, int y) {
         Minecraft mc = Minecraft.getMinecraft();
         List<String> list = item.getTooltip(mc.thePlayer, mc.gameSettings.advancedItemTooltips);
+        String favorites = "Press "+TextFormatting.DARK_PURPLE+ "F"+TextFormatting.RESET+" to %s favorites";
+        if (LiteModItemDash.getInstance().favorites.has(item)) {
+            list.add(String.format(favorites, "remove from"));
+        } else {
+            list.add(String.format(favorites, "add to"));
+        }
         drawHoveringText(list, x, y);
     }
 
@@ -114,7 +120,7 @@ public class ItemIcon extends Gui {
             size = item.getMaxStackSize();
         return new ItemStack(item.getItem(), size, item.getItemDamage());
     }
-    
+
     public ItemStack getStack() {
         return this.item;
     }
