@@ -52,6 +52,16 @@ public abstract class MixinGuiContainerCreative extends InventoryEffectRenderer 
         }
     }
 
+    @Inject(method = "mouseClicked(III)V", at = @At("HEAD"))
+    private void onMouseClicked(int mx, int my, int mb, CallbackInfo ci) {
+        LiteModItemDash.onMouseClicked(mx, my, mb);
+    }
+
+    @Inject(method = "mouseReleased(III)V", at = @At("HEAD"))
+    private void onMouseReleased(int mx, int my, int mb, CallbackInfo ci) {
+        LiteModItemDash.onMouseReleased(mx, my, mb);
+    }
+
     @Inject(method = "keyTyped(CI)V", cancellable = true, at = @At("HEAD"))
     private void onKeyTyped(char typedChar, int keyCode, CallbackInfo ci) {
         if (LiteModItemDash.onHandleKeyboardInput(typedChar, keyCode))
