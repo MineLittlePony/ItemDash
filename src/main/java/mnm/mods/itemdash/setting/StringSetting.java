@@ -85,6 +85,7 @@ public class StringSetting extends Setting<String> {
                     .filter(e -> e.getKey().equals(get()))
                     .findFirst()
                     .ifPresent(e -> e.getValue().checked = true);
+            super.set(textBox.getText());
         }
     }
 
