@@ -17,17 +17,13 @@ public class BoolSetting extends Setting<Boolean> {
     @Override
     public void mouseClick(int x, int y, int b) {
         if (chkbox.mousePressed(mc, x, y)) {
-            set(!get());
+            set(!chkbox.checked);
         }
     }
 
     @Override
-    protected Boolean get() {
-        return chkbox.checked;
-    }
-
-    @Override
     protected void set(Boolean value) {
+        super.set(value);
         chkbox.checked = value;
     }
 
