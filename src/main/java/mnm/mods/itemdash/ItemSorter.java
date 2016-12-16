@@ -1,9 +1,9 @@
 package mnm.mods.itemdash;
 
-import java.util.Comparator;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+
+import java.util.Comparator;
 
 public enum ItemSorter {
 
@@ -12,7 +12,7 @@ public enum ItemSorter {
         String bId = Item.REGISTRY.getNameForObject(b.getItem()).toString();
         return aId.compareToIgnoreCase(bId);
     }),
-    DEFAULT((a, b) -> Item.getIdFromItem(a.getItem()) - Item.getIdFromItem(b.getItem())),
+    DEFAULT(Comparator.comparingInt(a -> Item.getIdFromItem(a.getItem()))),
     BY_NAME((a, b) -> a.getDisplayName().compareToIgnoreCase(b.getDisplayName()));
 
     private final Comparator<ItemStack> sort;

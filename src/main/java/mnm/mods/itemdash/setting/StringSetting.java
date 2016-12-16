@@ -6,7 +6,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mumfrey.liteloader.client.gui.GuiCheckbox;
 
-import mnm.mods.itemdash.DashSettings;
+import mnm.mods.itemdash.gui.dash.DashSettings;
 import net.minecraft.client.gui.GuiTextField;
 
 public class StringSetting extends Setting<String> {

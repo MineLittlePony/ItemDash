@@ -1,4 +1,4 @@
-package mnm.mods.itemdash;
+package mnm.mods.itemdash.gui;
 
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.Easings;
@@ -34,6 +34,7 @@ public class Rainblower extends Gui implements Runnable {
                 EasingType quadratic = factory.quartic();
 
                 GuiScreen screen = Minecraft.getMinecraft().currentScreen;
+                if (screen == null) return;
                 int xPos = (int) quadratic.in().ease(currTime, -256, screen.width + 256 * 3, TIME);
                 int yPos = (int) linear.in().ease(currTime, screen.height / 8, screen.height + 100, TIME);
                 GlStateManager.pushMatrix();

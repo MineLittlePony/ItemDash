@@ -1,4 +1,6 @@
-package mnm.mods.itemdash;
+package mnm.mods.itemdash.gui.dash;
+
+import mnm.mods.itemdash.Favorites;
 
 public class FavoritesDash extends MainDash {
 

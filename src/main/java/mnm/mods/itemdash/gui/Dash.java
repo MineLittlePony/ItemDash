@@ -1,4 +1,6 @@
-package mnm.mods.itemdash;
+package mnm.mods.itemdash.gui;
+
+import mnm.mods.itemdash.gui.dash.ItemDash;
 
 public class Dash extends DashElement {
 
@@ -13,8 +15,6 @@ public class Dash extends DashElement {
     public void update(int xPos, int yPos, int width, int height) {}
 
     public void keyTyped(char key, int code) {}
-
-    public void handleMouse() {}
 
     public void mouseClickMove(int x, int y) {}
 

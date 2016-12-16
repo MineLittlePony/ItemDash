@@ -1,22 +1,14 @@
-package mnm.mods.itemdash;
-
-import static mnm.mods.itemdash.ItemDash.DASH_ICON_W;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.lwjgl.input.Keyboard;
+package mnm.mods.itemdash.gui.dash;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
-
+import mnm.mods.itemdash.gui.Dash;
+import mnm.mods.itemdash.gui.DashScroller;
+import mnm.mods.itemdash.Favorites;
+import mnm.mods.itemdash.ItemFilters;
+import mnm.mods.itemdash.ItemIcon;
+import mnm.mods.itemdash.LiteModItemDash;
+import mnm.mods.itemdash.gui.Scrollable;
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.EasingsFactory;
 import net.minecraft.client.Minecraft;
@@ -24,6 +16,15 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
+import org.apache.commons.lang3.ArrayUtils;
+import org.lwjgl.input.Keyboard;
+
+import javax.annotation.Nullable;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class MainDash extends Dash implements Scrollable {
 
@@ -62,7 +63,7 @@ public class MainDash extends Dash implements Scrollable {
             stacks = items.stream().filter(filter).collect(Collectors.toList());
         else
             stacks = Lists.newArrayList(items);
-        Collections.sort(stacks, sorter());
+        stacks.sort(sorter());
         final int totalCols = this.itemdash.width / ItemDash.DASH_ICON_W;
         ItemIcon[][] icons = new ItemIcon[0][];
         for (int i = 0; i < stacks.size(); i++) {
@@ -83,17 +84,17 @@ public class MainDash extends Dash implements Scrollable {
                 ItemIcon icon = arrangedIcons[i][j];
                 if (icon == null)
                     continue;
-                int xPos = j * DASH_ICON_W + this.itemdash.xPos;
-                int yPos = i * DASH_ICON_W + getY();
+                int xPos = j * ItemDash.DASH_ICON_W + this.itemdash.xPos;
+                int yPos = i * ItemDash.DASH_ICON_W + getY();
                 icon.renderAt(xPos + 1, yPos + 2);
-                if (mousex >= xPos && mousey >= yPos && mousex < xPos + DASH_ICON_W && mousey < yPos + DASH_ICON_W)
-                    Gui.drawRect(xPos, yPos + 1, xPos + DASH_ICON_W, yPos + DASH_ICON_W + 1, 0x66ffffff);
+                if (mousex >= xPos && mousey >= yPos && mousex < xPos + ItemDash.DASH_ICON_W && mousey < yPos + ItemDash.DASH_ICON_W)
+                    Gui.drawRect(xPos, yPos + 1, xPos + ItemDash.DASH_ICON_W, yPos + ItemDash.DASH_ICON_W + 1, 0x66ffffff);
             }
         }
     }
 
     private ItemIcon[][] getVisibleItems() {
-        int rows = this.itemdash.height / DASH_ICON_W;
+        int rows = this.itemdash.height / ItemDash.DASH_ICON_W;
 
         int start = scroll;
         if (start < 0)
@@ -152,9 +153,9 @@ public class MainDash extends Dash implements Scrollable {
         mouseY -= getY() - 1;
         if (mouseX <= 0 || mouseY <= 0)
             return null;
-        int count = this.itemdash.width / DASH_ICON_W;
-        int col = mouseX / DASH_ICON_W;
-        int row = mouseY / DASH_ICON_W;
+        int count = this.itemdash.width / ItemDash.DASH_ICON_W;
+        int col = mouseX / ItemDash.DASH_ICON_W;
+        int row = mouseY / ItemDash.DASH_ICON_W;
         // outside
         ItemIcon[][] visible = getVisibleItems();
         if (row < 0 || col < 0 || row >= visible.length || col >= count)
@@ -233,6 +234,9 @@ public class MainDash extends Dash implements Scrollable {
             else
                 onClose();
         }
+        if (code == Keyboard.KEY_TAB) {
+            doSearch();
+        }
 
         if (this.search.textboxKeyTyped(key, code)) {
             if (search.getText().isEmpty()) {
@@ -256,7 +260,7 @@ public class MainDash extends Dash implements Scrollable {
     }
 
     public void markDirty() {
-        this.searching = this.filter != null;
+//        this.searching = this.filter != null;
         this.itemdash.dirty = true;
     }
 
@@ -282,25 +286,25 @@ public class MainDash extends Dash implements Scrollable {
 
     @Override
     public int getScroll() {
-        return scroll * DASH_ICON_W;
+        return scroll * ItemDash.DASH_ICON_W;
     }
 
     @Override
     public void setScroll(int newScroll) {
-        scroll = newScroll / DASH_ICON_W;
+        scroll = newScroll / ItemDash.DASH_ICON_W;
         scroll = Math.max(scroll, 0);
-        scroll = Math.min(scroll, arrangedIcons.length - itemdash.height / DASH_ICON_W);
+        scroll = Math.min(scroll, arrangedIcons.length - itemdash.height / ItemDash.DASH_ICON_W);
 
     }
 
     @Override
     public void scroll(int dir) {
-        setScroll((scroll + dir) * DASH_ICON_W);
+        setScroll((scroll + dir) * ItemDash.DASH_ICON_W);
     }
 
     @Override
     public int getContentHeight() {
-        return arrangedIcons.length * DASH_ICON_W;
+        return arrangedIcons.length * ItemDash.DASH_ICON_W;
     }
 
     public void doSearch() {

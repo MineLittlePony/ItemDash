@@ -1,20 +1,21 @@
-package mnm.mods.itemdash;
-
-import java.util.List;
-import java.util.function.Supplier;
+package mnm.mods.itemdash.gui.dash;
 
 import com.google.common.collect.Lists;
 import com.mumfrey.liteloader.core.LiteLoader;
-
+import mnm.mods.itemdash.gui.Dash;
+import mnm.mods.itemdash.ItemSorter;
+import mnm.mods.itemdash.LiteModItemDash;
 import mnm.mods.itemdash.setting.BoolSetting;
 import mnm.mods.itemdash.setting.OptionSetting;
 import mnm.mods.itemdash.setting.Setting;
 import mnm.mods.itemdash.setting.StringSetting;
 
+import java.util.List;
+import java.util.function.Supplier;
+
 public class DashSettings extends Dash {
 
     private final LiteModItemDash litemod = LiteModItemDash.getInstance();
-    private boolean visible;
     private List<Supplier<Boolean>> focused = Lists.newArrayList();
 
     private List<Setting<?>> settings = Lists.newArrayList();
@@ -27,7 +28,7 @@ public class DashSettings extends Dash {
                 it -> litemod.giveCommand = it, litemod.giveCommand)
                         .preset("Vanilla", "/give {0} {1} {2} {3}")
                         .preset("Essentials", "/i {1}:{3} {2}"));
-        this.settings.add(new OptionSetting<ItemSorter>("Sorting",
+        this.settings.add(new OptionSetting<>("Sorting",
                 it -> litemod.sort = it, litemod.sort)
                         .option(ItemSorter.BY_ID, "By ID")
                         .option(ItemSorter.DEFAULT, "By Legacy")
@@ -64,10 +65,6 @@ public class DashSettings extends Dash {
     public void onClose() {
         LiteLoader.getInstance().writeConfig(litemod);
         this.itemdash.dirty = true;
-    }
-
-    public boolean isVisible() {
-        return visible;
     }
 
     @Override

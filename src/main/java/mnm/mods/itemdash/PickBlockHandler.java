@@ -14,7 +14,7 @@ public class PickBlockHandler {
     private boolean cooldown;
 
     public void handleMouse() {
-        if (!mc.thePlayer.capabilities.isCreativeMode) {
+        if (!mc.player.capabilities.isCreativeMode) {
             if (mc.gameSettings.keyBindPickBlock.isKeyDown()) {
                 if (!cooldown) {
                     middleClickMouse();
@@ -30,19 +30,18 @@ public class PickBlockHandler {
         if (mc.objectMouseOver != null) {
 
             if (mc.objectMouseOver.typeOfHit == RayTraceResult.Type.BLOCK) {
-                ItemStack itemstack;
                 BlockPos blockpos = mc.objectMouseOver.getBlockPos();
-                IBlockState state = mc.theWorld.getBlockState(blockpos);
+                IBlockState state = mc.world.getBlockState(blockpos);
                 if (state.getMaterial() == Material.AIR) {
                     return;
                 }
 
-                itemstack = state.getBlock().getItem(mc.theWorld, blockpos, state);
+                ItemStack itemstack = state.getBlock().getItem(mc.world, blockpos, state);
 
-                if (itemstack == null) {
+                if (itemstack.isEmpty()) {
                     return;
                 }
-                if (mc.thePlayer.isSneaking() || !inventoryHas(itemstack)) {
+                if (mc.player.isSneaking() || !inventoryHas(itemstack)) {
                     Item item = itemstack.getItem();
                     LiteModItemDash.getInstance().giveItem(new ItemStack(item, item.getItemStackLimit(), itemstack.getMetadata()));
                 }
@@ -51,7 +50,7 @@ public class PickBlockHandler {
     }
 
     private boolean inventoryHas(ItemStack item) {
-        for (ItemStack s : mc.thePlayer.inventory.mainInventory) {
+        for (ItemStack s : mc.player.inventory.mainInventory) {
             if (item.isItemEqual(s))
                 return true;
 

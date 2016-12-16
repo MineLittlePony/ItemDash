@@ -1,14 +1,16 @@
 package mnm.mods.itemdash.mixin;
 
-import java.io.IOException;
-
-import org.spongepowered.asm.mixin.Mixin;
-
 import mnm.mods.itemdash.LiteModItemDash;
 import mnm.mods.itemdash.ducks.IGuiContainer;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.inventory.Container;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.io.IOException;
 
 @Mixin(InventoryEffectRenderer.class)
 public abstract class MixinInventoryEffectRenderer extends GuiContainer implements IGuiContainer {
@@ -17,15 +19,14 @@ public abstract class MixinInventoryEffectRenderer extends GuiContainer implemen
         super(inventorySlotsIn);
     }
 
-    @Override
-    public void initGui() {
-        super.initGui();
-        LiteModItemDash.onUpdateScreen((InventoryEffectRenderer) (Object) this);
+    @Inject(method = "initGui()V", at = @At("RETURN"))
+    private void onInitGui(CallbackInfo ci) {
+        LiteModItemDash.onUpdateScreen(this);
     }
 
     @Override
     protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
-        LiteModItemDash.onMouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+        LiteModItemDash.onMouseClickMove(mouseX, mouseY);
         super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
     }
 

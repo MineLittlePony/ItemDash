@@ -1,7 +1,5 @@
 package mnm.mods.itemdash;
 
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
@@ -11,12 +9,16 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
 
+import javax.annotation.Nonnull;
+import java.util.List;
+
 public class ItemIcon extends Gui {
 
+    @Nonnull
     private final ItemStack item;
     private final RenderItem render;
 
-    public ItemIcon(ItemStack item) {
+    public ItemIcon(@Nonnull ItemStack item) {
         this.item = item;
         this.render = Minecraft.getMinecraft().getRenderItem();
     }
@@ -31,8 +33,8 @@ public class ItemIcon extends Gui {
 
     public void renderTooltip(int x, int y) {
         Minecraft mc = Minecraft.getMinecraft();
-        List<String> list = item.getTooltip(mc.thePlayer, mc.gameSettings.advancedItemTooltips);
-        String favorites = "Press "+TextFormatting.DARK_PURPLE+ "F"+TextFormatting.RESET+" to %s favorites";
+        List<String> list = item.getTooltip(mc.player, mc.gameSettings.advancedItemTooltips);
+        String favorites = "Press " + TextFormatting.DARK_PURPLE + "F" + TextFormatting.RESET + " to %s favorites";
         if (LiteModItemDash.getInstance().favorites.has(item)) {
             list.add(String.format(favorites, "remove from"));
         } else {
@@ -75,8 +77,9 @@ public class ItemIcon extends Gui {
             }
 
             j2 -= 28 + k;
-
-            int height = Minecraft.getMinecraft().currentScreen.height;
+            Minecraft mc = Minecraft.getMinecraft();
+            assert mc.currentScreen != null;
+            int height = mc.currentScreen.height;
             if (k2 + i1 + 6 > height) {
                 k2 = height - i1 - 6;
             }

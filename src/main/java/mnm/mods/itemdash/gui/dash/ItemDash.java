@@ -1,40 +1,42 @@
-package mnm.mods.itemdash;
-
-import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nonnull;
-
-import org.lwjgl.input.Keyboard;
+package mnm.mods.itemdash.gui.dash;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-
+import mnm.mods.itemdash.gui.Dash;
+import mnm.mods.itemdash.gui.DashElement;
+import mnm.mods.itemdash.Favorites;
+import mnm.mods.itemdash.LiteModItemDash;
+import mnm.mods.itemdash.gui.SideTab;
 import mnm.mods.itemdash.ducks.IGuiContainer;
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.EasingsFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
+import org.lwjgl.input.Keyboard;
+
+import javax.annotation.Nonnull;
+import java.util.List;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ItemDash extends DashElement {
 
     public static final int DASH_ICON_W = 18;
 
-    private static enum Tabs {
+    private enum Tabs {
         TOGGLE,
         ITEMS,
         FAVORITES,
-        SETTINGS,
-        SEARCH
+        SETTINGS
     }
 
-    private final List<ItemStack> items;
+    private final NonNullList<ItemStack> items;
 
     private Minecraft mc = Minecraft.getMinecraft();
 
@@ -54,12 +56,13 @@ public class ItemDash extends DashElement {
     public boolean dirty = true;
 
     public ItemDash(final Set<String> ignored, Favorites favorites) {
-        List<ItemStack> list = Lists.newArrayList();
-        Item.REGISTRY.forEach((Item it) -> it.getSubItems(it, null, list));
-        Function<Item, String> namer = it -> Item.REGISTRY.getNameForObject(it).toString();
+        final NonNullList<ItemStack> list = NonNullList.create();
+        for (Item it : Item.REGISTRY)
+            it.getSubItems(it, null, list);
+        Function<Item, ResourceLocation> namer = Item.REGISTRY::getNameForObject;
         this.items = list.stream()
-                .filter(it -> !ignored.contains(namer.apply(it.getItem())))
-                .collect(Collectors.toList());
+                .filter(it -> !ignored.contains(namer.apply(it.getItem()).toString()))
+                .collect(Collectors.toCollection(NonNullList::create));
         this.favorites = favorites;
         int i = 0;
         // enable
@@ -73,50 +76,50 @@ public class ItemDash extends DashElement {
         // main
         SideTab items = new SideTab(Tabs.ITEMS.ordinal(), i++, 80, 40, true, this);
         this.tabs.add(items);
-        // search
-        this.tabs.add(new SideTab(Tabs.SEARCH.ordinal(), i++, 0, 40, true, this));
         // favorites
         this.tabs.add(new SideTab(Tabs.FAVORITES.ordinal(), i++, 40, 40, true, this));
         // TODO potions nbt
         // settings
         this.tabs.add(new SideTab(Tabs.SETTINGS.ordinal(), i++, 20, 40, true, this));
 
-        this.onTabActivated(items);
+        this.currentDash = new MainDash(this, this.items);
     }
 
-    public void setCurrentDash(@Nonnull Dash dash) {
-        if (dash == null) {
-            dash = new MainDash(this, this.items);
-        }
-        if (this.currentDash != null) {
-            this.currentDash.onClose();
-        }
+    private void setCurrentDash(@Nonnull Dash dash) {
+        this.currentDash.onClose();
+
         this.currentDash = dash;
     }
 
-    public void onTabActivated(@Nonnull SideTab tab) {
+    private void onTabActivated(@Nonnull SideTab tab) {
 
         Preconditions.checkPositionIndex(tab.id, Tabs.values().length, "Tab is out of bounds. Expected 0-" + Tabs.values().length + " but found " + tab.id);
         Tabs tabs = Tabs.values()[tab.id];
+        // check if the tab is active right now.
+        if (tab.active) {
+            if (isEnabled())
+                doSearch();
+            else
+                setEnabled(true);
+            return;
+        }
         boolean open = true;
         switch (tabs) {
-        case TOGGLE:
-            open = !this.isEnabled();
-            break;
-        case ITEMS:
-            setCurrentDash(new MainDash(this, this.items));
-            break;
-        case SETTINGS:
-            setCurrentDash(new DashSettings(this));
-            break;
-        case FAVORITES:
-            setCurrentDash(new FavoritesDash(this, this.favorites));
-            break;
-        case SEARCH:
-            this.doSearch();
+            case TOGGLE:
+                open = !this.isEnabled();
+                break;
+            case ITEMS:
+                setCurrentDash(new MainDash(this, this.items));
+                break;
+            case SETTINGS:
+                setCurrentDash(new DashSettings(this));
+                break;
+            case FAVORITES:
+                setCurrentDash(new FavoritesDash(this, this.favorites));
+                break;
 
         }
-        if (open == !this.isEnabled()) {
+        if (open != this.isEnabled()) {
             this.setEnabled(open);
         }
 
@@ -129,7 +132,7 @@ public class ItemDash extends DashElement {
         }
     }
 
-    public void setEnabled(boolean enable) {
+    private void setEnabled(boolean enable) {
         if (isEnabled() == enable)
             return;
         LiteModItemDash.getInstance().enabled = enable;
@@ -137,7 +140,7 @@ public class ItemDash extends DashElement {
         LiteModItemDash.getInstance().saveConfig();
     }
 
-    public boolean isEnabled() {
+    private boolean isEnabled() {
         return LiteModItemDash.getInstance().enabled;
     }
 
@@ -145,7 +148,7 @@ public class ItemDash extends DashElement {
         return this.currentDash.isFocused();
     }
 
-    public Favorites getFavorites() {
+    Favorites getFavorites() {
         return favorites;
     }
 
@@ -153,19 +156,19 @@ public class ItemDash extends DashElement {
         this.currentDash.onTick();
     }
 
-    public void updateDash(InventoryEffectRenderer screen) {
+    public void updateDash(GuiContainer screen) {
 
         this.checkForGuiChanges(screen);
         int guiWidth = ((IGuiContainer) screen).getXSize();
         int newLeft = xPos / 2 - guiWidth / 2;
-        if (!mc.thePlayer.getActivePotionEffects().isEmpty()) {
+        if (!mc.player.getActivePotionEffects().isEmpty()) {
             newLeft += 50;
         }
         ((IGuiContainer) screen).setGuiLeft(newLeft);
 
     }
 
-    private void checkForGuiChanges(InventoryEffectRenderer cont) {
+    private void checkForGuiChanges(GuiContainer cont) {
         int yPos = 0;
         int width = (int) ((cont.width - ((IGuiContainer) cont).getXSize()) / (3f / 2f));
         width = (width / DASH_ICON_W) * DASH_ICON_W;
@@ -199,7 +202,7 @@ public class ItemDash extends DashElement {
         }
     }
 
-    public void preRender(GuiContainer cont, int mousex, int mousey) {
+    public void preRender(int mousex, int mousey) {
 
         GlStateManager.enableAlpha();
         drawBackground();
@@ -207,7 +210,7 @@ public class ItemDash extends DashElement {
 
     }
 
-    public void postRender(GuiContainer cont, int mousex, int mousey) {
+    public void postRender(int mousex, int mousey) {
 
         this.currentDash.postRender(mousex, mousey);
 
@@ -229,7 +232,7 @@ public class ItemDash extends DashElement {
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
         this.currentDash.mouseClicked(mouseX, mouseY, mouseButton);
         for (SideTab tab : tabs) {
-            if (tab.mouseClicked(mouseX, mouseY, mouseButton)) {
+            if (tab.mouseClicked(mouseX, mouseY)) {
                 this.onTabActivated(tab);
                 break;
             }
@@ -240,14 +243,13 @@ public class ItemDash extends DashElement {
         this.currentDash.mouseReleased(mouseX, mouseY, mouseButton);
     }
 
-    public void mouseClickMove(int x, int y, int lastButton, long buttonTime) {
+    public void mouseClickMove(int x, int y) {
         this.currentDash.mouseClickMove(x, y);
     }
 
     private void doSearch() {
-        MainDash dash = new MainDash(this, this.items);
-        this.setCurrentDash(dash);
-        dash.doSearch();
+        if (this.currentDash instanceof MainDash)
+            ((MainDash) this.currentDash).doSearch();
     }
 
     public void keyTyped(char key, int code) {
@@ -255,9 +257,6 @@ public class ItemDash extends DashElement {
             if (code == Keyboard.KEY_O) {
                 setEnabled(!isEnabled());
             }
-        }
-        if (code == Keyboard.KEY_TAB) {
-            doSearch();
         }
         this.currentDash.keyTyped(key, code);
 

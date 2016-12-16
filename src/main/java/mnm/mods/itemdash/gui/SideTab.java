@@ -1,9 +1,10 @@
-package mnm.mods.itemdash;
+package mnm.mods.itemdash.gui;
 
-import java.awt.Color;
-
+import mnm.mods.itemdash.gui.dash.ItemDash;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
+
+import java.awt.Color;
 
 public class SideTab extends DashElement {
 
@@ -47,7 +48,7 @@ public class SideTab extends DashElement {
         }
     }
 
-    public boolean mouseClicked(int mouseX, int mouseY, int button) {
+    public boolean mouseClicked(int mouseX, int mouseY) {
         return this.visible && mouseX > xPosition && mouseX < xPosition + width && mouseY > yPosition && mouseY < yPosition + height;
     }
 }

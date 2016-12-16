@@ -1,23 +1,17 @@
 package mnm.mods.itemdash;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-
-import org.lwjgl.input.Mouse;
-
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 import com.google.gson.annotations.Expose;
 import com.mumfrey.liteloader.InitCompleteListener;
 import com.mumfrey.liteloader.PacketHandler;
 import com.mumfrey.liteloader.Tickable;
 import com.mumfrey.liteloader.core.LiteLoader;
-
+import com.mumfrey.liteloader.modconfig.ExposableOptions;
+import mnm.mods.itemdash.gui.Rainblower;
+import mnm.mods.itemdash.gui.dash.ItemDash;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -27,8 +21,17 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketSetSlot;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import org.lwjgl.input.Mouse;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
+
+@ExposableOptions(filename = "itemdash.json")
 public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHandler {
 
     private static LiteModItemDash instance;
@@ -41,7 +44,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     private Rainblower rd;
     private Konami konamiCode;
 
-    private ItemStack lastRequestedStack;
+    private ItemStack lastRequestedStack = ItemStack.EMPTY;
 
     @Expose
     public boolean enabled = true;
@@ -51,15 +54,10 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     public boolean numIds = false;
     @Expose
     public ItemSorter sort = ItemSorter.DEFAULT;
-    @Expose
-    public Set<String> ignored = Sets.newHashSet(
-            "minecraft:farmland",
-            "minecraft:lit_furnace",
-            "minecraft:map",
-            "minecraft:enchanted_book",
-            "minecraft:end_crystal");
 
-    public Favorites favorites;
+    private ExcludedItems ignored = new ExcludedItems();
+
+    Favorites favorites;
 
     @Override
     public String getName() {
@@ -74,23 +72,26 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     @Override
     public void init(File configPath) {
         instance = this;
-        this.mc = Minecraft.getMinecraft();
         this.rd = new Rainblower();
-        this.pbh = new PickBlockHandler();
         this.konamiCode = new Konami(rd);
+        this.pbh = new PickBlockHandler();
         this.favorites = new Favorites();
-        LiteLoader.getInstance().registerExposable(this, "itemdash.json");
+
+        LiteLoader.getInstance().registerExposable(this, null);
+        LiteLoader.getInstance().registerExposable(this.ignored, null);
+
         this.dataFile = new File(configPath, "itemdash.dat");
     }
 
     @Override
     public void onInitCompleted(Minecraft minecraft, LiteLoader loader) {
+        this.mc = minecraft;
         // init later so I catch other mods and their items/blocks
         this.readDataFile();
-        this.itemdash = new ItemDash(Sets.newHashSet(ignored), favorites);
+        this.itemdash = new ItemDash(ignored.getIgnored(), favorites);
     }
 
-    public void readDataFile() {
+    private void readDataFile() {
         try {
             File data = this.dataFile;
             if (data.exists()) {
@@ -146,7 +147,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
                 this.lastRequestedStack = null;
                 int slot = setslot.getSlot() - 9 * 4;
                 if (slot >= 0)
-                    mc.thePlayer.inventory.currentItem = slot;
+                    mc.player.inventory.currentItem = slot;
                 // TODO reorganize inventory
             }
         }
@@ -154,33 +155,39 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     }
 
     @Override
-    public void upgradeSettings(String version, File configPath, File oldConfigPath) {}
+    public void upgradeSettings(String version, File configPath, File oldConfigPath) {
+    }
 
     public void giveItem(ItemStack stack) {
         Minecraft mc = Minecraft.getMinecraft();
         this.lastRequestedStack = stack;
         if (mc.isSingleplayer()) {
-            UUID uuid = mc.thePlayer.getGameProfile().getId();
-            EntityPlayer player = mc.getIntegratedServer().getPlayerList().getPlayerByUUID(uuid);
-            boolean added = player.inventory.addItemStackToInventory(stack);
-            if (added)
+            UUID uuid = mc.player.getGameProfile().getId();
+            MinecraftServer server = mc.getIntegratedServer();
+            assert server != null;
+
+            EntityPlayer player = server.getPlayerList().getPlayerByUUID(uuid);
+            if (player.inventory.addItemStackToInventory(stack))
                 player.inventoryContainer.detectAndSendChanges();
+
         } else {
             String message = formatGiveCommand(stack);
-            mc.thePlayer.sendChatMessage(message);
+            mc.player.sendChatMessage(message);
         }
     }
 
     private String formatGiveCommand(ItemStack stack) {
-        String give = instance.giveCommand;
         int numId = Item.getIdFromItem(stack.getItem());
-        String strId = Item.REGISTRY.getNameForObject(stack.getItem()).toString();
-        give = give
-                .replace("{0}", mc.thePlayer.getName())
+        ResourceLocation item = Item.REGISTRY.getNameForObject(stack.getItem());
+        if (item == null) {
+            throw new NullPointerException(stack + " is not a registered item.");
+        }
+        String strId = item.toString();
+        return instance.giveCommand
+                .replace("{0}", mc.player.getName())
                 .replace("{1}", instance.numIds ? Integer.toString(numId) : strId)
-                .replace("{2}", Integer.toString(stack.stackSize))
+                .replace("{2}", Integer.toString(stack.getCount()))
                 .replace("{3}", Integer.toString(stack.getMetadata()));
-        return give;
     }
 
     public void saveConfig() {
@@ -195,20 +202,20 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
         instance.itemdash.mouseReleased(mouseX, mouseY, mouseButton);
     }
 
-    public static void onMouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
-        instance.itemdash.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+    public static void onMouseClickMove(int mouseX, int mouseY) {
+        instance.itemdash.mouseClickMove(mouseX, mouseY);
     }
 
-    public static boolean onHandleMouseInput(int mouseX, int mouseY) {
-        return instance.handleMouseInput(mouseX, mouseY);
+    public static boolean onHandleMouseInput(int mouseX) {
+        return instance.handleMouseInput(mouseX);
     }
 
-    private boolean handleMouseInput(int x, int y) {
+    private boolean handleMouseInput(int x) {
         if (x > itemdash.xPos) {
             int scroll = Mouse.getEventDWheel();
             if (scroll != 0) {
 
-                scroll = MathHelper.clamp_int(scroll, -1, 1);
+                scroll = MathHelper.clamp(scroll, -1, 1);
 
                 if (GuiScreen.isShiftKeyDown()) {
                     scroll *= itemdash.height / ItemDash.DASH_ICON_W;
@@ -216,9 +223,8 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
                 itemdash.scroll(-scroll);
                 return true;
             }
-            return false;
         }
-        return x > itemdash.xPos - 20;
+        return false;
     }
 
     public static boolean onHandleKeyboardInput(char typedChar, int keyCode) {
@@ -232,20 +238,20 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
         return cancel;
     }
 
-    public static void onPostRenderScreen(InventoryEffectRenderer screen, int x, int y) {
-        instance.itemdash.postRender(screen, x, y);
+    public static void onPostRenderScreen(int x, int y) {
+        instance.itemdash.postRender(x, y);
         instance.rd.draw();
     }
 
-    public static void onPreRenderScreen(InventoryEffectRenderer screen, int x, int y, float ticks) {
-        instance.itemdash.preRender(screen, x, y);
+    public static void onPreRenderScreen(int x, int y) {
+        instance.itemdash.preRender(x, y);
     }
 
     public static LiteModItemDash getInstance() {
         return instance;
     }
 
-    public static void onUpdateScreen(InventoryEffectRenderer screen) {
+    public static void onUpdateScreen(GuiContainer screen) {
         instance.itemdash.updateDash(screen);
 
     }

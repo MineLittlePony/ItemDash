@@ -1,4 +1,4 @@
-package mnm.mods.itemdash;
+package mnm.mods.itemdash.gui;
 
 public interface Scrollable {
 

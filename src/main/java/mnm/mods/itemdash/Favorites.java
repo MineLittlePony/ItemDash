@@ -1,15 +1,14 @@
 package mnm.mods.itemdash;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.google.common.collect.Sets;
-
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+
+import java.util.Collection;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Favorites {
 
@@ -50,7 +49,7 @@ public class Favorites {
         NBTTagList nbtlist = tag.getTagList(NAME, 10);
         for (int i = 0; i < nbtlist.tagCount(); i++) {
             NBTTagCompound item = nbtlist.getCompoundTagAt(i);
-            ItemStack stack = ItemStack.loadItemStackFromNBT(item);
+            ItemStack stack = new ItemStack(item);
             add(stack);
         }
     }
