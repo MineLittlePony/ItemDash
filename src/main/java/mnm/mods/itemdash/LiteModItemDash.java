@@ -26,6 +26,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.input.Mouse;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -44,6 +45,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     private Rainblower rd;
     private Konami konamiCode;
 
+    @Nonnull
     private ItemStack lastRequestedStack = ItemStack.EMPTY;
 
     @Expose
@@ -123,7 +125,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     public void onTick(Minecraft minecraft, float partialTicks, boolean inGame, boolean clock) {
         GuiScreen screen = minecraft.currentScreen;
         if (screen instanceof InventoryEffectRenderer) {
-            this.lastRequestedStack = null;
+            this.lastRequestedStack = ItemStack.EMPTY;
             itemdash.onTick();
         }
         if (inGame) {
@@ -138,13 +140,13 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
 
     @Override
     public boolean handlePacket(INetHandler netHandler, Packet<?> packet) {
-        if (this.lastRequestedStack != null && packet instanceof SPacketSetSlot) {
+        if (!this.lastRequestedStack.isEmpty() && packet instanceof SPacketSetSlot) {
             SPacketSetSlot setslot = (SPacketSetSlot) packet;
             ItemStack stack = setslot.getStack();
             Item lastItem = this.lastRequestedStack.getItem();
             int lastMeta = this.lastRequestedStack.getMetadata();
             if (lastItem == stack.getItem() && lastMeta == stack.getMetadata()) {
-                this.lastRequestedStack = null;
+                this.lastRequestedStack = ItemStack.EMPTY;
                 int slot = setslot.getSlot() - 9 * 4;
                 if (slot >= 0)
                     mc.player.inventory.currentItem = slot;
