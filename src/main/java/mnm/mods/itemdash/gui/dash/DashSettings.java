@@ -2,9 +2,9 @@ package mnm.mods.itemdash.gui.dash;
 
 import com.google.common.collect.Lists;
 import com.mumfrey.liteloader.core.LiteLoader;
-import mnm.mods.itemdash.gui.Dash;
 import mnm.mods.itemdash.ItemSorter;
 import mnm.mods.itemdash.LiteModItemDash;
+import mnm.mods.itemdash.gui.Dash;
 import mnm.mods.itemdash.setting.BoolSetting;
 import mnm.mods.itemdash.setting.OptionSetting;
 import mnm.mods.itemdash.setting.Setting;
@@ -26,13 +26,13 @@ public class DashSettings extends Dash {
                 it -> litemod.numIds = it, litemod.numIds));
         this.settings.add(new StringSetting(this, "Give Command",
                 it -> litemod.giveCommand = it, litemod.giveCommand)
-                        .preset("Vanilla", "/give {0} {1} {2} {3}")
-                        .preset("Essentials", "/i {1}:{3} {2}"));
+                .preset("Vanilla", "/give {0} {1} {2} {3}")
+                .preset("Essentials", "/i {1}:{3} {2}"));
         this.settings.add(new OptionSetting<>("Sorting",
                 it -> litemod.sort = it, litemod.sort)
-                        .option(ItemSorter.BY_ID, "By ID")
-                        .option(ItemSorter.DEFAULT, "By Legacy")
-                        .option(ItemSorter.BY_NAME, "By Name"));
+                .option(ItemSorter.DEFAULT, "Default")
+                .option(ItemSorter.BY_ID, "By ID")
+                .option(ItemSorter.BY_NAME, "By Name"));
     }
 
     @Override

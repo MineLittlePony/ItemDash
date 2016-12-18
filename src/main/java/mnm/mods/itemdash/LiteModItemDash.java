@@ -14,6 +14,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.InventoryEffectRenderer;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -24,6 +25,8 @@ import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Mouse;
 
 import javax.annotation.Nonnull;
@@ -35,6 +38,7 @@ import java.util.UUID;
 @ExposableOptions(filename = "itemdash.json")
 public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHandler {
 
+    public static final Logger LOGGER = LogManager.getLogger("ItemDash");
     private static LiteModItemDash instance;
 
     private File dataFile;
@@ -44,6 +48,8 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     private PickBlockHandler pbh;
     private Rainblower rd;
     private Konami konamiCode;
+
+    private boolean pickSlot;
 
     @Nonnull
     private ItemStack lastRequestedStack = ItemStack.EMPTY;
@@ -131,6 +137,22 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
         if (inGame) {
             pbh.handleMouse();
         }
+        if (this.pickSlot) {
+            InventoryPlayer inv = minecraft.player.inventory;
+            // inv.setPickedItemStack but doesn't give the item (just in case)
+            int slot = inv.getSlotFor(this.lastRequestedStack);
+
+            if (InventoryPlayer.isHotbar(slot)) {
+                inv.currentItem = slot;
+            } else if (slot != -1) {
+                inv.pickItem(slot);
+            } else {
+                // happens with items on the server that had nbt.
+                LOGGER.warn("Inventory didn't have {}?", this.lastRequestedStack);
+            }
+            this.lastRequestedStack = ItemStack.EMPTY;
+            this.pickSlot = false;
+        }
     }
 
     @Override
@@ -143,14 +165,8 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
         if (!this.lastRequestedStack.isEmpty() && packet instanceof SPacketSetSlot) {
             SPacketSetSlot setslot = (SPacketSetSlot) packet;
             ItemStack stack = setslot.getStack();
-            Item lastItem = this.lastRequestedStack.getItem();
-            int lastMeta = this.lastRequestedStack.getMetadata();
-            if (lastItem == stack.getItem() && lastMeta == stack.getMetadata()) {
-                this.lastRequestedStack = ItemStack.EMPTY;
-                int slot = setslot.getSlot() - 9 * 4;
-                if (slot >= 0)
-                    mc.player.inventory.currentItem = slot;
-                // TODO reorganize inventory
+            if (this.lastRequestedStack.isItemEqual(stack)) {
+                this.pickSlot = true;
             }
         }
         return true;
@@ -163,7 +179,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     public void giveItem(ItemStack stack) {
         Minecraft mc = Minecraft.getMinecraft();
         this.lastRequestedStack = stack;
-        if (mc.isSingleplayer()) {
+        if (mc.isSingleplayer() && mc.world.getWorldInfo().areCommandsAllowed()) {
             UUID uuid = mc.player.getGameProfile().getId();
             MinecraftServer server = mc.getIntegratedServer();
             assert server != null;
@@ -171,7 +187,6 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
             EntityPlayer player = server.getPlayerList().getPlayerByUUID(uuid);
             if (player.inventory.addItemStackToInventory(stack))
                 player.inventoryContainer.detectAndSendChanges();
-
         } else {
             String message = formatGiveCommand(stack);
             mc.player.sendChatMessage(message);
