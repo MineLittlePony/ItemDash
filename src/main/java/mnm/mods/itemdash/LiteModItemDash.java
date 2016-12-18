@@ -145,7 +145,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
             if (InventoryPlayer.isHotbar(slot)) {
                 inv.currentItem = slot;
             } else if (slot != -1) {
-                inv.pickItem(slot);
+                mc.playerController.pickItem(slot);
             } else {
                 // happens with items on the server that had nbt.
                 LOGGER.warn("Inventory didn't have {}?", this.lastRequestedStack);
