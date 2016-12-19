@@ -23,6 +23,7 @@ import net.minecraft.network.INetHandler;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.SPacketSetSlot;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
@@ -55,13 +56,15 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     private ItemStack lastRequestedStack = ItemStack.EMPTY;
 
     @Expose
-    public boolean enabled = true;
+    private boolean visible = true;
     @Expose
-    public String giveCommand = "/give {0} {1} {2} {3}";
+    private boolean survivalPick = true;
     @Expose
-    public boolean numIds = false;
+    private String giveCommand = "/give {0} {1} {2} {3}";
     @Expose
-    public ItemSorter sort = ItemSorter.DEFAULT;
+    private boolean numIds = false;
+    @Expose
+    private ItemSorter sort = ItemSorter.DEFAULT;
 
     private ExcludedItems ignored = new ExcludedItems();
 
@@ -135,7 +138,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
             itemdash.onTick();
         }
         if (inGame) {
-            pbh.handleMouse();
+            pbh.handleMouse(this.survivalPick);
         }
         if (this.pickSlot) {
             InventoryPlayer inv = minecraft.player.inventory;
@@ -179,7 +182,12 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     public void giveItem(ItemStack stack) {
         Minecraft mc = Minecraft.getMinecraft();
         this.lastRequestedStack = stack;
-        if (mc.isSingleplayer() && mc.world.getWorldInfo().areCommandsAllowed()) {
+        if (mc.player.isCreative()) {
+            stack.setCount(1);
+            mc.player.inventory.setPickedItemStack(stack);
+            mc.playerController.sendSlotPacket(mc.player.getHeldItem(EnumHand.MAIN_HAND), 36 + mc.player.inventory.currentItem);
+
+        } else if (mc.isSingleplayer() && mc.world.getWorldInfo().areCommandsAllowed()) {
             UUID uuid = mc.player.getGameProfile().getId();
             MinecraftServer server = mc.getIntegratedServer();
             assert server != null;
@@ -271,6 +279,46 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
     public static void onUpdateScreen(GuiContainer screen) {
         instance.itemdash.updateDash(screen);
 
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public boolean isSurvivalPick() {
+        return survivalPick;
+    }
+
+    public void setSurvivalPick(boolean pick) {
+        this.survivalPick = pick;
+    }
+
+    public String getGiveCommand() {
+        return giveCommand;
+    }
+
+    public void setGiveCommand(String giveCommand) {
+        this.giveCommand = giveCommand;
+    }
+
+    public boolean isNumIds() {
+        return numIds;
+    }
+
+    public void setNumIds(boolean numIds) {
+        this.numIds = numIds;
+    }
+
+    public ItemSorter getSort() {
+        return sort;
+    }
+
+    public void setSort(ItemSorter sort) {
+        this.sort = sort;
     }
 
 }

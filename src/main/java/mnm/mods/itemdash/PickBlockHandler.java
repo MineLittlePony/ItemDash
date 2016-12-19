@@ -25,8 +25,8 @@ public class PickBlockHandler {
     private Minecraft mc = Minecraft.getMinecraft();
     private boolean cooldown;
 
-    public void handleMouse() {
-        if (!mc.player.capabilities.isCreativeMode) {
+    public void handleMouse(boolean survivalPick) {
+        if (mc.playerController.gameIsSurvivalOrAdventure() && survivalPick) {
             if (mc.gameSettings.keyBindPickBlock.isKeyDown()) {
                 if (!cooldown) {
                     middleClickMouse();

@@ -54,7 +54,7 @@ public class MainDash extends Dash implements Scrollable {
     }
 
     private Comparator<ItemStack> sorter() {
-        return LiteModItemDash.getInstance().sort.getSort();
+        return LiteModItemDash.getInstance().getSort().getSort();
     }
 
     private ItemIcon[][] arrangeItems(Collection<ItemStack> items) {
@@ -236,6 +236,7 @@ public class MainDash extends Dash implements Scrollable {
         }
         if (code == Keyboard.KEY_TAB) {
             doSearch();
+            itemdash.setVisible(true);
         }
 
         if (this.search.textboxKeyTyped(key, code)) {

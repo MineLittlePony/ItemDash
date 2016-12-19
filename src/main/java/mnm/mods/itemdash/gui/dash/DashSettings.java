@@ -22,14 +22,12 @@ public class DashSettings extends Dash {
 
     public DashSettings(ItemDash itemdash) {
         super(itemdash);
-        this.settings.add(new BoolSetting("Legacy IDs",
-                it -> litemod.numIds = it, litemod.numIds));
-        this.settings.add(new StringSetting(this, "Give Command",
-                it -> litemod.giveCommand = it, litemod.giveCommand)
+        this.settings.add(new BoolSetting("Legacy IDs", litemod::setNumIds, litemod.isNumIds()));
+        this.settings.add(new BoolSetting("Survival Pick block", litemod::setSurvivalPick, litemod.isSurvivalPick()));
+        this.settings.add(new StringSetting(this, "Give Command", litemod::setGiveCommand, litemod.getGiveCommand())
                 .preset("Vanilla", "/give {0} {1} {2} {3}")
                 .preset("Essentials", "/i {1}:{3} {2}"));
-        this.settings.add(new OptionSetting<>("Sorting",
-                it -> litemod.sort = it, litemod.sort)
+        this.settings.add(new OptionSetting<>("Sorting", litemod::setSort, litemod.getSort())
                 .option(ItemSorter.DEFAULT, "Default")
                 .option(ItemSorter.BY_ID, "By ID")
                 .option(ItemSorter.BY_NAME, "By Name"));

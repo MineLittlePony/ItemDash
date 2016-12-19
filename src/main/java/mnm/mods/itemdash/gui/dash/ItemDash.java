@@ -69,12 +69,13 @@ public class ItemDash extends DashElement {
         this.tabs.add(new SideTab(Tabs.TOGGLE.ordinal(), i++, 0, 20, false, this) {
             @Override
             public void drawTab() {
-                this.texU = isEnabled() ? 0 : 20;
+                this.texU = isVisible() ? 0 : 20;
                 super.drawTab();
             }
         });
         // main
         SideTab items = new SideTab(Tabs.ITEMS.ordinal(), i++, 80, 40, true, this);
+        items.active = true;
         this.tabs.add(items);
         // favorites
         this.tabs.add(new SideTab(Tabs.FAVORITES.ordinal(), i++, 40, 40, true, this));
@@ -97,16 +98,16 @@ public class ItemDash extends DashElement {
         Tabs tabs = Tabs.values()[tab.id];
         // check if the tab is active right now.
         if (tab.active) {
-            if (isEnabled())
+            if (isVisible())
                 doSearch();
             else
-                setEnabled(true);
+                setVisible(true);
             return;
         }
         boolean open = true;
         switch (tabs) {
             case TOGGLE:
-                open = !this.isEnabled();
+                open = !this.isVisible();
                 break;
             case ITEMS:
                 setCurrentDash(new MainDash(this, this.items));
@@ -119,8 +120,8 @@ public class ItemDash extends DashElement {
                 break;
 
         }
-        if (open != this.isEnabled()) {
-            this.setEnabled(open);
+        if (open != this.isVisible()) {
+            this.setVisible(open);
         }
 
         if (tab.activatable) {
@@ -132,16 +133,16 @@ public class ItemDash extends DashElement {
         }
     }
 
-    private void setEnabled(boolean enable) {
-        if (isEnabled() == enable)
+    public void setVisible(boolean visible) {
+        if (isVisible() == visible)
             return;
-        LiteModItemDash.getInstance().enabled = enable;
+        LiteModItemDash.getInstance().setVisible(visible);
         toggleTimer = mc.ingameGUI.getUpdateCounter();
         LiteModItemDash.getInstance().saveConfig();
     }
 
-    private boolean isEnabled() {
-        return LiteModItemDash.getInstance().enabled;
+    private boolean isVisible() {
+        return LiteModItemDash.getInstance().isVisible();
     }
 
     public boolean isFocused() {
@@ -177,7 +178,7 @@ public class ItemDash extends DashElement {
         int tick = mc.ingameGUI.getUpdateCounter() - this.toggleTimer;
         EasingType easing = EasingsFactory.getInstance().quadratic();
         final float time = 10;
-        if (!isEnabled()) {
+        if (!isVisible()) {
             xPos = cont.width - width;
             if (tick < time)
                 xPos = (int) easing.in().ease(tick, xPos, width, time);
@@ -255,7 +256,7 @@ public class ItemDash extends DashElement {
     public void keyTyped(char key, int code) {
         if (!currentDash.isFocused()) {
             if (code == Keyboard.KEY_O) {
-                setEnabled(!isEnabled());
+                setVisible(!isVisible());
             }
         }
         this.currentDash.keyTyped(key, code);
