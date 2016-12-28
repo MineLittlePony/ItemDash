@@ -2,15 +2,15 @@ package mnm.mods.itemdash.gui.dash;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
-import mnm.mods.itemdash.gui.Dash;
-import mnm.mods.itemdash.gui.DashScroller;
 import mnm.mods.itemdash.Favorites;
 import mnm.mods.itemdash.ItemFilters;
 import mnm.mods.itemdash.ItemIcon;
 import mnm.mods.itemdash.LiteModItemDash;
-import mnm.mods.itemdash.gui.Scrollable;
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.EasingsFactory;
+import mnm.mods.itemdash.gui.Dash;
+import mnm.mods.itemdash.gui.DashScroller;
+import mnm.mods.itemdash.gui.Scrollable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiTextField;
@@ -117,7 +117,7 @@ public class MainDash extends Dash implements Scrollable {
                 yPos = (int) easing.in().ease(tick, yPos, 14, 2);
             else
                 yPos += 14;
-            height = itemdash.height - yPos;
+            itemdash.height = height;
         }
 
         this.yPos = yPos;
@@ -282,7 +282,7 @@ public class MainDash extends Dash implements Scrollable {
 
     @Override
     public int getWindowHeight() {
-        return itemdash.height;
+        return itemdash.height - yPos;
     }
 
     @Override
@@ -294,7 +294,7 @@ public class MainDash extends Dash implements Scrollable {
     public void setScroll(int newScroll) {
         scroll = newScroll / ItemDash.DASH_ICON_W;
         scroll = Math.max(scroll, 0);
-        scroll = Math.min(scroll, arrangedIcons.length - itemdash.height / ItemDash.DASH_ICON_W);
+        scroll = Math.min(scroll, arrangedIcons.length - getWindowHeight() / ItemDash.DASH_ICON_W);
 
     }
 
@@ -341,7 +341,9 @@ public class MainDash extends Dash implements Scrollable {
 
     }
 
-    /** So the compiler doesn't complain about ambiguous references */
+    /**
+     * So the compiler doesn't complain about ambiguous references
+     */
     private static <T> T[] concatArray(T[] ta, T t) {
         return ObjectArrays.concat(ta, t);
     }

@@ -4,8 +4,6 @@ import mnm.mods.itemdash.gui.dash.ItemDash;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 
-import java.awt.Color;
-
 public class SideTab extends DashElement {
 
     private final ItemDash itemDash;
@@ -40,7 +38,7 @@ public class SideTab extends DashElement {
             this.zLevel = 299;
             // if (active)
             Gui.drawRect(this.xPosition + 2, this.yPosition + 2, this.xPosition + this.width - 2, this.yPosition + this.height - 2,
-                    active ? Color.ORANGE.getRGB() : Color.YELLOW.getRGB());
+                    active ? Integer.MAX_VALUE : Integer.MIN_VALUE);
             drawBorders(this.xPosition, yPosition, width, height, TOP | TOP_LEFT | LEFT | BOTTOM_LEFT | BOTTOM);
             GlStateManager.color(1, 1, 1);
             this.drawTexturedModalRect(this.xPosition, yPosition, this.texU, this.texV, this.width, this.height);

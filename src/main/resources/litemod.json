@@ -1,9 +1,6 @@
 {
 	"name":			"ItemDash",
-	"version":		"$version",
-	"mcversion":	"$mcversion",
-	"revision":		"$revision",
-	"author":		"JoyJoy",
+	"mcversion":	"1.11.2",
 	"description":	"Get items easilly",
 	"mixinConfigs": ["mixins.itemdash.json"]
 }
