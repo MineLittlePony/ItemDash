@@ -45,12 +45,16 @@ public class ItemIcon extends Gui {
 
     protected void drawHoveringText(List<String> textLines, int x, int y) {
         if (!textLines.isEmpty()) {
-            String id = Item.REGISTRY.getNameForObject(item.getItem()).toString();
-            id = id.replace("minecraft:", "");
-            int legId = Item.REGISTRY.getIDForObject(item.getItem());
-            String meta = TextFormatting.WHITE + " (" + legId + (item.getMetadata() != 0 ? ":" + item.getMetadata() : "") + ")";
-            id += meta;
-            String str = textLines.get(0) + " " + TextFormatting.LIGHT_PURPLE + id;
+            Minecraft mc = Minecraft.getMinecraft();
+            String str = textLines.get(0);
+            if (!mc.gameSettings.advancedItemTooltips) {
+                String id = Item.REGISTRY.getNameForObject(item.getItem()).toString();
+                id = id.replace("minecraft:", "");
+                int legId = Item.REGISTRY.getIDForObject(item.getItem());
+                String meta = TextFormatting.WHITE + " (" + legId + (item.getMetadata() != 0 ? ":" + item.getMetadata() : "") + ")";
+                id += meta;
+                str += " " + TextFormatting.LIGHT_PURPLE + id;
+            }
             textLines.set(0, str);
 
             while (y < 16)
@@ -61,7 +65,7 @@ public class ItemIcon extends Gui {
             GlStateManager.disableDepth();
             int k = 0;
             for (String s : textLines) {
-                int l = Minecraft.getMinecraft().fontRendererObj.getStringWidth(s);
+                int l = mc.fontRendererObj.getStringWidth(s);
 
                 if (l > k) {
                     k = l;
@@ -77,7 +81,6 @@ public class ItemIcon extends Gui {
             }
 
             j2 -= 28 + k;
-            Minecraft mc = Minecraft.getMinecraft();
             assert mc.currentScreen != null;
             int height = mc.currentScreen.height;
             if (k2 + i1 + 6 > height) {
@@ -100,7 +103,7 @@ public class ItemIcon extends Gui {
 
             for (int i2 = 0; i2 < textLines.size(); ++i2) {
                 String s1 = textLines.get(i2);
-                Minecraft.getMinecraft().fontRendererObj.drawStringWithShadow(s1, j2, k2, -1);
+                mc.fontRendererObj.drawStringWithShadow(s1, j2, k2, -1);
 
                 if (i2 == 0) {
                     k2 += 2;
