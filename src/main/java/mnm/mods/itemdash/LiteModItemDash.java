@@ -7,8 +7,8 @@ import com.mumfrey.liteloader.PacketHandler;
 import com.mumfrey.liteloader.Tickable;
 import com.mumfrey.liteloader.core.LiteLoader;
 import com.mumfrey.liteloader.modconfig.ExposableOptions;
+import mnm.mods.itemdash.gui.ItemDash;
 import mnm.mods.itemdash.gui.Rainblower;
-import mnm.mods.itemdash.gui.dash.ItemDash;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
@@ -30,11 +30,11 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Mouse;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import javax.annotation.Nonnull;
 
 @ExposableOptions(filename = "itemdash.json")
 public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHandler {
@@ -68,7 +68,7 @@ public class LiteModItemDash implements Tickable, InitCompleteListener, PacketHa
 
     private ExcludedItems ignored = new ExcludedItems();
 
-    Favorites favorites;
+    public Favorites favorites;
 
     @Override
     public String getName() {

@@ -1,8 +1,9 @@
-package mnm.mods.itemdash;
+package mnm.mods.itemdash.gui;
 
 import static net.minecraft.util.text.TextFormatting.DARK_PURPLE;
 import static net.minecraft.util.text.TextFormatting.RESET;
 
+import mnm.mods.itemdash.LiteModItemDash;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
@@ -65,7 +66,7 @@ public class ItemIcon extends Gui {
             boolean fav = LiteModItemDash.getInstance().favorites.has(item);
             tooltip.add(String.format(favorites, fav ? "remove from" : "add to"));
 
-            tooltip.add(String.format(option, "CTRL + N", "customize"));
+//            tooltip.add(String.format(option, "CTRL + N", "customize"));
         }
         return tooltip;
     }

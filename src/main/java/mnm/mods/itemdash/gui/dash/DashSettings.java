@@ -4,7 +4,7 @@ import com.google.common.collect.Lists;
 import com.mumfrey.liteloader.core.LiteLoader;
 import mnm.mods.itemdash.ItemSorter;
 import mnm.mods.itemdash.LiteModItemDash;
-import mnm.mods.itemdash.gui.Dash;
+import mnm.mods.itemdash.gui.ItemDash;
 import mnm.mods.itemdash.setting.BoolSetting;
 import mnm.mods.itemdash.setting.OptionSetting;
 import mnm.mods.itemdash.setting.Setting;

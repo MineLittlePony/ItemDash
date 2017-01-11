@@ -8,7 +8,7 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.Function;
 
-public enum ItemSorter {
+public enum ItemSorter implements Comparator<ItemStack> {
 
     DEFAULT(Comparator.comparingInt(a -> Item.getIdFromItem(a.getItem()))),
     BY_ID(comparingStringIgnoreCase(a -> Objects.toString(Item.REGISTRY.getNameForObject(a.getItem())))),
@@ -20,8 +20,9 @@ public enum ItemSorter {
         this.sort = sort.thenComparingInt(ItemStack::getMetadata);
     }
 
-    public Comparator<ItemStack> getSort() {
-        return this.sort;
+    @Override
+    public int compare(ItemStack o1, ItemStack o2) {
+        return sort.compare(o1, o2);
     }
 
     private static <T> Comparator<T> comparingStringIgnoreCase(Function<T, String> func) {

@@ -1,4 +1,7 @@
-package mnm.mods.itemdash.gui;
+package mnm.mods.itemdash.gui.dash;
+
+import mnm.mods.itemdash.gui.DashElement;
+import mnm.mods.itemdash.gui.ItemDash;
 
 public class Dash extends DashElement {
 

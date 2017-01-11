@@ -1,35 +1,36 @@
 package mnm.mods.itemdash.gui.dash;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import mnm.mods.itemdash.Favorites;
 import mnm.mods.itemdash.ItemFilters;
-import mnm.mods.itemdash.ItemIcon;
+import mnm.mods.itemdash.gui.ItemIcon;
 import mnm.mods.itemdash.LiteModItemDash;
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.EasingsFactory;
-import mnm.mods.itemdash.gui.Dash;
 import mnm.mods.itemdash.gui.DashScroller;
+import mnm.mods.itemdash.gui.ItemDash;
 import mnm.mods.itemdash.gui.Scrollable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 import org.apache.commons.lang3.ArrayUtils;
 import org.lwjgl.input.Keyboard;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 
 public class MainDash extends Dash implements Scrollable {
 
     private Collection<ItemStack> items;
-    @Nullable
+    @Nonnull
     private Predicate<ItemStack> filter;
 
     private int yPos;
@@ -51,19 +52,21 @@ public class MainDash extends Dash implements Scrollable {
         this.items = items;
         this.search = new GuiTextField(0, Minecraft.getMinecraft().fontRendererObj, 0, 0, 5, 5);
         this.scrollbar = new DashScroller(this);
+        setFilter(null);
     }
 
-    private Comparator<ItemStack> sorter() {
-        return LiteModItemDash.getInstance().getSort().getSort();
+    public void setFilter(Predicate<ItemStack> filter) {
+        if (filter == null) {
+            filter = it -> true;
+        }
+        this.filter = filter;
     }
 
     private ItemIcon[][] arrangeItems(Collection<ItemStack> items) {
-        List<ItemStack> stacks;
-        if (filter != null)
-            stacks = items.stream().filter(filter).collect(Collectors.toList());
-        else
-            stacks = Lists.newArrayList(items);
-        stacks.sort(sorter());
+        List<ItemStack> stacks = items.stream()
+                .filter(filter)
+                .sorted(LiteModItemDash.getInstance().getSort())
+                .collect(Collectors.toList());
         final int totalCols = this.itemdash.width / ItemDash.DASH_ICON_W;
         ItemIcon[][] icons = new ItemIcon[0][];
         for (int i = 0; i < stacks.size(); i++) {
@@ -147,20 +150,19 @@ public class MainDash extends Dash implements Scrollable {
         this.items = items;
     }
 
-    @Nullable
-    protected ItemIcon getItem(int mouseX, int mouseY) {
+    protected Optional<ItemIcon> getItem(int mouseX, int mouseY) {
         mouseX -= itemdash.xPos;
         mouseY -= getY() - 1;
         if (mouseX <= 0 || mouseY <= 0)
-            return null;
+            return Optional.empty();
         int count = this.itemdash.width / ItemDash.DASH_ICON_W;
         int col = mouseX / ItemDash.DASH_ICON_W;
         int row = mouseY / ItemDash.DASH_ICON_W;
         // outside
         ItemIcon[][] visible = getVisibleItems();
         if (row < 0 || col < 0 || row >= visible.length || col >= count)
-            return null;
-        return visible[row][col];
+            return Optional.empty();
+        return Optional.ofNullable(visible[row][col]);
     }
 
     public boolean isSearching() {
@@ -191,20 +193,18 @@ public class MainDash extends Dash implements Scrollable {
         this.lastMouseX = mousex;
         this.lastMouseY = mousey;
         this.search.drawTextBox();
-        ItemIcon icon = getItem(mousex, mousey);
-        if (icon != null) {
+        getItem(mousex, mousey).ifPresent(icon -> {
             icon.renderTooltip(mousex, mousey);
             RenderHelper.disableStandardItemLighting();
-        }
+        });
     }
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
         this.search.mouseClicked(mouseX, mouseY, mouseButton);
-        ItemIcon item = getItem(mouseX, mouseY);
-        if (item != null) {
-            LiteModItemDash.getInstance().giveItem(item.getStack(mouseButton));
-        }
+        getItem(mouseX, mouseY)
+                .map(icon -> icon.getStack(mouseButton))
+                .ifPresent(LiteModItemDash.getInstance()::giveItem);
         scrollbar.mouseClick(mouseX, mouseY, mouseButton);
     }
 
@@ -222,12 +222,12 @@ public class MainDash extends Dash implements Scrollable {
     @Override
     public void keyTyped(char key, int code) {
 
-        if (code == Keyboard.KEY_F) {
-            this.favoriteItem();
+        if (GuiScreen.isCtrlKeyDown() && code == Keyboard.KEY_F) {
+            this.itemAction(this::favoriteItem);
         }
-        if (code == Keyboard.KEY_N) {
-            // this.nbtItem();
-        }
+//        if (GuiScreen.isCtrlKeyDown() && code == Keyboard.KEY_N) {
+//            this.itemAction(this::customizeItem);
+//        }
         if (code == Keyboard.KEY_ESCAPE) {
             if (this.search.isFocused())
                 this.search.setFocused(false);
@@ -241,9 +241,9 @@ public class MainDash extends Dash implements Scrollable {
 
         if (this.search.textboxKeyTyped(key, code)) {
             if (search.getText().isEmpty()) {
-                this.filter = null;
+                setFilter(null);
             } else {
-                this.filter = ItemFilters.nameContains(search.getText());
+                setFilter(ItemFilters.nameContains(search.getText()));
             }
             itemdash.dirty = this.search.isFocused();
         }
@@ -252,7 +252,7 @@ public class MainDash extends Dash implements Scrollable {
     @Override
     public void onClose() {
         markDirty();
-        this.searching = filter != null;
+        this.searching = !this.search.getText().isEmpty();
     }
 
     @Override
@@ -310,7 +310,7 @@ public class MainDash extends Dash implements Scrollable {
 
     public void doSearch() {
         this.search.setText("");
-        this.filter = null;
+        setFilter(null);
         this.search.setFocused(true);
         if (!searching) {
             this.searching = true;
@@ -318,13 +318,10 @@ public class MainDash extends Dash implements Scrollable {
         }
     }
 
-    protected void favoriteItem() {
-        ItemIcon icon = getItem(this.lastMouseX, this.lastMouseY);
-        if (icon == null)
-            return;
-
-        ItemStack stack = icon.getStack();
-        favoriteItem(stack);
+    protected void itemAction(Consumer<ItemStack> item) {
+        getItem(this.lastMouseX, this.lastMouseY)
+                .map(ItemIcon::getStack)
+                .ifPresent(item);
     }
 
     protected void favoriteItem(ItemStack stack) {
@@ -339,6 +336,12 @@ public class MainDash extends Dash implements Scrollable {
         }
         LiteModItemDash.getInstance().writeDataFile();
 
+    }
+
+    protected void customizeItem(ItemStack stack) {
+        stack = stack.copy();
+
+        this.itemdash.setCurrentDash(new CustomizeDash(this.itemdash, stack));
     }
 
     /**

@@ -1,6 +1,8 @@
 package mnm.mods.itemdash.gui.dash;
 
 import mnm.mods.itemdash.Favorites;
+import mnm.mods.itemdash.gui.ItemDash;
+import net.minecraft.item.ItemStack;
 
 public class FavoritesDash extends MainDash {
 
@@ -12,8 +14,8 @@ public class FavoritesDash extends MainDash {
     }
 
     @Override
-    protected void favoriteItem() {
-        super.favoriteItem();
+    protected void favoriteItem(ItemStack stack) {
+        super.favoriteItem(stack);
         this.updateItems(favorites.getItems());
     }
 

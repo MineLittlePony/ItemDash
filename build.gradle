@@ -20,7 +20,7 @@ apply plugin: 'net.minecraftforge.gradle.liteloader'
 apply plugin: 'org.spongepowered.mixin'
 
 group = "mnm.mods"
-version = "1.3.1"
+version = "1.3.2-SNAPSHOT"
 
 targetCompatibility = 1.8
 sourceCompatibility = 1.8

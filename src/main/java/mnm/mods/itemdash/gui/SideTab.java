@@ -1,6 +1,5 @@
 package mnm.mods.itemdash.gui;
 
-import mnm.mods.itemdash.gui.dash.ItemDash;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 

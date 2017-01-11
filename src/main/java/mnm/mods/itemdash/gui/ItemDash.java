@@ -1,4 +1,4 @@
-package mnm.mods.itemdash.gui.dash;
+package mnm.mods.itemdash.gui;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -7,9 +7,11 @@ import mnm.mods.itemdash.LiteModItemDash;
 import mnm.mods.itemdash.ducks.IGuiContainer;
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.EasingsFactory;
-import mnm.mods.itemdash.gui.Dash;
-import mnm.mods.itemdash.gui.DashElement;
-import mnm.mods.itemdash.gui.SideTab;
+import mnm.mods.itemdash.gui.dash.CustomizeDash;
+import mnm.mods.itemdash.gui.dash.Dash;
+import mnm.mods.itemdash.gui.dash.DashSettings;
+import mnm.mods.itemdash.gui.dash.FavoritesDash;
+import mnm.mods.itemdash.gui.dash.MainDash;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -34,7 +36,7 @@ public class ItemDash extends DashElement {
         TOGGLE,
         ITEMS,
         FAVORITES,
-        CUSTOMIZE,
+//        CUSTOMIZE,
         SETTINGS
     }
 
@@ -84,7 +86,7 @@ public class ItemDash extends DashElement {
         this.tabs.add(items);
         // favorites
         this.tabs.add(new SideTab(Tabs.FAVORITES.ordinal(), i++, 40, 40, true, this));
-        this.tabs.add(new SideTab(Tabs.CUSTOMIZE.ordinal(), ++i, 60, 40, true, this));
+//        this.tabs.add(new SideTab(Tabs.CUSTOMIZE.ordinal(), i++, 60, 40, true, this));
         // TODO potions
         // settings
         this.tabs.add(new SideTab(Tabs.SETTINGS.ordinal(), i++, 20, 40, true, this));
@@ -124,12 +126,12 @@ public class ItemDash extends DashElement {
             case FAVORITES:
                 setCurrentDash(new FavoritesDash(this, this.favorites));
                 break;
-            case CUSTOMIZE:
-                if (customizeDash != null && customizeDash.isWorking())
-                    setCurrentDash(customizeDash);
-                else
-                    setCurrentDash(customizeDash = new CustomizeDash(this, ItemStack.EMPTY));
-                break;
+//            case CUSTOMIZE:
+//                if (customizeDash != null && customizeDash.isWorking())
+//                    setCurrentDash(customizeDash);
+//                else
+//                    setCurrentDash(customizeDash = new CustomizeDash(this, ItemStack.EMPTY));
+//                break;
 
         }
         if (open != this.isVisible()) {
@@ -161,7 +163,7 @@ public class ItemDash extends DashElement {
         return this.currentDash.isFocused();
     }
 
-    Favorites getFavorites() {
+    public Favorites getFavorites() {
         return favorites;
     }
 
