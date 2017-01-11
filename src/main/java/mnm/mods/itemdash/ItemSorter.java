@@ -3,32 +3,31 @@ package mnm.mods.itemdash;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 
+import java.io.Serializable;
 import java.util.Comparator;
+import java.util.Objects;
+import java.util.function.Function;
 
 public enum ItemSorter {
 
-    BY_ID((a, b) -> {
-        String aId = Item.REGISTRY.getNameForObject(a.getItem()).toString();
-        String bId = Item.REGISTRY.getNameForObject(b.getItem()).toString();
-        return aId.compareToIgnoreCase(bId);
-    }),
     DEFAULT(Comparator.comparingInt(a -> Item.getIdFromItem(a.getItem()))),
-    BY_NAME((a, b) -> a.getDisplayName().compareToIgnoreCase(b.getDisplayName()));
+    BY_ID(comparingStringIgnoreCase(a -> Objects.toString(Item.REGISTRY.getNameForObject(a.getItem())))),
+    BY_NAME(comparingStringIgnoreCase(ItemStack::getDisplayName));
 
     private final Comparator<ItemStack> sort;
 
-    private ItemSorter(final Comparator<ItemStack> sort) {
-        this.sort = sort;
+    ItemSorter(final Comparator<ItemStack> sort) {
+        this.sort = sort.thenComparingInt(ItemStack::getMetadata);
     }
 
     public Comparator<ItemStack> getSort() {
-        return (a, b) -> {
-            // wrap the sorter and include metadata
-            int i = sort.compare(a, b);
-            if (i == 0) {
-                i = a.getMetadata() - b.getMetadata();
-            }
-            return i;
-        };
+        return this.sort;
     }
+
+    private static <T> Comparator<T> comparingStringIgnoreCase(Function<T, String> func) {
+        Objects.requireNonNull(func);
+        return (Comparator<T> & Serializable)
+                (c1, c2) -> func.apply(c1).compareToIgnoreCase(func.apply(c2));
+    }
+
 }
