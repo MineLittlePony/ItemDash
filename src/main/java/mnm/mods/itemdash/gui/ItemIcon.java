@@ -1,16 +1,20 @@
 package mnm.mods.itemdash;
 
+import static net.minecraft.util.text.TextFormatting.DARK_PURPLE;
+import static net.minecraft.util.text.TextFormatting.RESET;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.text.TextFormatting;
 
-import javax.annotation.Nonnull;
 import java.util.List;
+import javax.annotation.Nonnull;
 
 public class ItemIcon extends Gui {
 
@@ -33,26 +37,41 @@ public class ItemIcon extends Gui {
 
     public void renderTooltip(int x, int y) {
         Minecraft mc = Minecraft.getMinecraft();
-        List<String> list = item.getTooltip(mc.player, mc.gameSettings.advancedItemTooltips);
-        String favorites = "Press " + TextFormatting.DARK_PURPLE + "F" + TextFormatting.RESET + " to %s favorites";
-        if (LiteModItemDash.getInstance().favorites.has(item)) {
-            list.add(String.format(favorites, "remove from"));
-        } else {
-            list.add(String.format(favorites, "add to"));
-        }
+        List<String> list = getTooltip(mc.player);
         drawHoveringText(list, x, y);
+    }
+
+    private List<String> getTooltip(EntityPlayer player) {
+        List<String> tooltip = this.item.getTooltip(player, false);
+        if (!tooltip.isEmpty()) {
+
+            // add numerical id
+            String name = tooltip.get(0);
+            int numId = Item.getIdFromItem(this.item.getItem());
+            if (item.getHasSubtypes()) {
+                name = name + String.format(" (%d/%d)", numId, item.getMetadata());
+            } else {
+                name = name + String.format(" (%d)", numId);
+            }
+            tooltip.set(0, name);
+
+            // string id goes at the end
+            String id = Item.REGISTRY.getNameForObject(item.getItem()).toString();
+            tooltip.add(TextFormatting.LIGHT_PURPLE + id);
+
+            // itemdash options
+            String option = "Press " + DARK_PURPLE + "%s" + RESET + " to %s";
+            String favorites = String.format(option, "CTRL + F", "%s favorites");
+            boolean fav = LiteModItemDash.getInstance().favorites.has(item);
+            tooltip.add(String.format(favorites, fav ? "remove from" : "add to"));
+
+            tooltip.add(String.format(option, "CTRL + N", "customize"));
+        }
+        return tooltip;
     }
 
     protected void drawHoveringText(List<String> textLines, int x, int y) {
         if (!textLines.isEmpty()) {
-            String id = Item.REGISTRY.getNameForObject(item.getItem()).toString();
-            id = id.replace("minecraft:", "");
-            int legId = Item.REGISTRY.getIDForObject(item.getItem());
-            String meta = TextFormatting.WHITE + " (" + legId + (item.getMetadata() != 0 ? ":" + item.getMetadata() : "") + ")";
-            id += meta;
-            String str = textLines.get(0) + " " + TextFormatting.LIGHT_PURPLE + id;
-            textLines.set(0, str);
-
             while (y < 16)
                 y++;
             GlStateManager.disableRescaleNormal();

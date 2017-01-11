@@ -2,14 +2,14 @@ package mnm.mods.itemdash.gui.dash;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import mnm.mods.itemdash.gui.Dash;
-import mnm.mods.itemdash.gui.DashElement;
 import mnm.mods.itemdash.Favorites;
 import mnm.mods.itemdash.LiteModItemDash;
-import mnm.mods.itemdash.gui.SideTab;
 import mnm.mods.itemdash.ducks.IGuiContainer;
 import mnm.mods.itemdash.easing.EasingType;
 import mnm.mods.itemdash.easing.EasingsFactory;
+import mnm.mods.itemdash.gui.Dash;
+import mnm.mods.itemdash.gui.DashElement;
+import mnm.mods.itemdash.gui.SideTab;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -19,11 +19,12 @@ import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.input.Keyboard;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 public class ItemDash extends DashElement {
 
@@ -33,6 +34,7 @@ public class ItemDash extends DashElement {
         TOGGLE,
         ITEMS,
         FAVORITES,
+        CUSTOMIZE,
         SETTINGS
     }
 
@@ -49,7 +51,10 @@ public class ItemDash extends DashElement {
 
     @Nonnull
     public Dash currentDash;
-    private Favorites favorites;
+    @Nonnull
+    private final Favorites favorites;
+    @Nullable
+    private CustomizeDash customizeDash;
 
     private int toggleTimer;
 
@@ -79,14 +84,15 @@ public class ItemDash extends DashElement {
         this.tabs.add(items);
         // favorites
         this.tabs.add(new SideTab(Tabs.FAVORITES.ordinal(), i++, 40, 40, true, this));
-        // TODO potions nbt
+        this.tabs.add(new SideTab(Tabs.CUSTOMIZE.ordinal(), ++i, 60, 40, true, this));
+        // TODO potions
         // settings
         this.tabs.add(new SideTab(Tabs.SETTINGS.ordinal(), i++, 20, 40, true, this));
 
         this.currentDash = new MainDash(this, this.items);
     }
 
-    private void setCurrentDash(@Nonnull Dash dash) {
+    public void setCurrentDash(@Nonnull Dash dash) {
         this.currentDash.onClose();
 
         this.currentDash = dash;
@@ -117,6 +123,12 @@ public class ItemDash extends DashElement {
                 break;
             case FAVORITES:
                 setCurrentDash(new FavoritesDash(this, this.favorites));
+                break;
+            case CUSTOMIZE:
+                if (customizeDash != null && customizeDash.isWorking())
+                    setCurrentDash(customizeDash);
+                else
+                    setCurrentDash(customizeDash = new CustomizeDash(this, ItemStack.EMPTY));
                 break;
 
         }
